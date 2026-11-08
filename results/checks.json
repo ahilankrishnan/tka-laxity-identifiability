@@ -1,0 +1,8 @@
+{
+ "path_knees": 80,
+ "path_outputs": 2560,
+ "path_changed": 2,
+ "fd_outlier_knees": 27,
+ "fd_outlier_max_change": 0.014804728829773406,
+ "step_max_change": 0.014992582681689237
+}
