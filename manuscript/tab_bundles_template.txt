@@ -1,0 +1,14 @@
+\begin{table}[H]
+\centering
+\caption{Ligament bundles and their nominal attachment sites. Coordinates are in millimeters, with $x$ anterior, $y$ medial, and $z$ proximal. Femoral sites are given in the femoral frame and tibial sites in the tibial frame, whose origin lies on the joint line \SI{25}{\milli\meter} below the femoral origin at full extension. The reference length is $l_\mathrm{r}$, and $\varepsilon_{90} = l/l_\mathrm{r} - 1$ is the relative length change at \SI{90}{\degree} flexion with the tibia held in the reference pose, which equals the bundle strain for $\varepsilon_\mathrm{r} = 0$.}
+\label{tab:bundles}
+\small
+\begin{tabular}{llccrr}
+\toprule
+Group & Bundle & Femoral site & Tibial site & $l_\mathrm{r}$ & $\varepsilon_{90}$\\
+ & & $(x, y, z)$ [\si{\milli\meter}] & $(x, y, z)$ [\si{\milli\meter}] & [\si{\milli\meter}] & [\si{\percent}]\\
+\midrule
+\input{tab_bundles_rows}
+\bottomrule
+\end{tabular}
+\end{table}

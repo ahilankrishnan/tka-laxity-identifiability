@@ -1,0 +1,68 @@
+\documentclass{article}
+
+\usepackage{command_template}
+\usepackage{bm}
+\usepackage{placeins}
+\usepackage{caption}
+\usepackage{booktabs}
+\setlength{\heavyrulewidth}{1.5pt}
+\captionsetup[table]{position=top}
+\usepackage{textcomp}
+\usepackage{hyperref}
+\usepackage[modulo]{lineno}
+\usepackage{microtype}
+\usepackage{setspace}
+\onehalfspacing
+\setlength{\parskip}{1.5pt}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
+\sisetup{list-final-separator = {, and }, list-pair-separator = { and }}
+\newcommand{\todo}[1]{{\color{red}{#1}}}
+
+\begin{document}
+
+\title{Which intraoperative measurements constrain ligament properties in knee arthroplasty?}
+
+\author{
+Ahilan Anantha Krishnan$^{1,*}$, Yashar Behnam$^{2}$, Chadd W. Clary$^{2}$\\
+$^{1}$Department of Aerospace and Mechanical Engineering, University of Notre Dame, Notre Dame, IN 46556, USA\\
+$^{2}$Department of Mechanical and Materials Engineering, University of Denver, Denver, CO 80208, USA\\
+}
+
+\date{}
+
+\maketitle
+
+\begingroup
+\renewcommand{\thefootnote}{*}
+\footnotetext{Corresponding author\\
+\emph{Email address}: aanantha@nd.edu\\
+\emph{Postal address}: Department of Aerospace and Mechanical Engineering, University of Notre Dame, Notre Dame, IN 46556, USA}
+\endgroup
+
+\input{body}
+
+\section*{Funding}
+This research did not receive any specific grant from funding agencies in the public, commercial, or not-for-profit sectors.
+
+\section*{Declaration of competing interest}
+The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.
+
+\section*{CRediT authorship contribution statement}
+\textbf{Ahilan Anantha Krishnan:} Conceptualization, Methodology, Software, Formal analysis, Investigation, Data curation, Visualization, Writing -- original draft, Writing -- review \& editing.
+\textbf{Yashar Behnam:} Formal analysis, Writing -- review \& editing.
+\textbf{Chadd W. Clary:} Conceptualization, Methodology, Project administration, Writing -- review \& editing.
+
+\section*{Data availability}
+The simulator, data-generation, calibration, and figure scripts that reproduce every result are available at \url{https://github.com/ahilankrishnan/tka-laxity-identifiability}.
+
+\section*{Declaration of generative AI and AI-assisted technologies in the manuscript preparation process}
+During the preparation of this work the authors used Claude (Anthropic) in order to write code and process data. After using this tool, the authors reviewed and edited the content as needed and take full responsibility for the content of the published article.
+
+\newpage
+\printbibliography
+
+\appendix
+\newpage
+\input{supplementary}
+
+\end{document}
