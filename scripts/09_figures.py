@@ -275,7 +275,7 @@ def fig1() -> None:
         axk.plot([XI - 7, XI + 7], [yy, yy], color=HUE[g], lw=1.1)
     for yy, s_ in zip(ly, ["femoral attachment", "tibial attachment"] + [GLAB[g] for g in GROUPS]):
         axk.text(XT, yy, s_, ha="left", va="center", fontsize=FL)
-    axk.text(0, 61, "loading conditions", fontsize=FT, ha="left", va="top")
+    axk.text(0, 61, "virtual laxity examination", fontsize=FT, ha="left", va="top")
     axk.plot([0, 100], [55.3, 55.3], color="#B0B0B0", lw=0.5)
     c = "#303030"
     hd = "head_length=2.6,head_width=1.3"
