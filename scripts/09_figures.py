@@ -269,8 +269,8 @@ def fig1() -> None:
     axk.text(0, 100, "ligaments", fontsize=FT, ha="left", va="top")
     axk.plot([0, 100], [94.3, 94.3], color="#B0B0B0", lw=0.5)
     ly = [90.3, 86.0, 81.7, 77.4, 73.1, 68.8]
-    axk.plot(XI, ly[0], "o", ms=MS_ATT, mfc="#5A5A5A", mec="k", mew=0.4)
-    axk.plot(XI, ly[1], "o", ms=MS_ATT, mfc="white", mec="#5A5A5A", mew=0.8)
+    axk.plot(XI, ly[0], "o", ms=MS_ATT, mfc="k", mec="k", mew=0.4)
+    axk.plot(XI, ly[1], "o", ms=MS_ATT, mfc="white", mec="k", mew=0.6)
     for yy, g in zip(ly[2:], GROUPS):
         axk.plot([XI - 7, XI + 7], [yy, yy], color=HUE[g], lw=1.1)
     for yy, s_ in zip(ly, ["femoral attachment", "tibial attachment"] + [GLAB[g] for g in GROUPS]):
@@ -281,7 +281,7 @@ def fig1() -> None:
     hd = "head_length=2.6,head_width=1.3"
     two = dict(arrowstyle=f"<|-|>,{hd}", lw=0.8, color=c, mutation_scale=1, shrinkA=0, shrinkB=0)
     one = dict(arrowstyle=f"-|>,{hd}", lw=0.8, color=c, mutation_scale=1, shrinkA=0, shrinkB=0)
-    rows = (47, 34, 21, 8)
+    rows = (47, 37, 27, 17)
     yc = rows[0]
     axk.plot([XI - 8, XI + 8], [yc, yc], color="#A0A0A0", lw=1.6, zorder=0)
     for xc in (XI - 4, XI + 4):
