@@ -13,10 +13,16 @@ LEFT, GAP, RIGHT, BELOW, ABOVE = 0.52, 0.04, 0.10, 0.40, 0.34   # inches; tight 
 LW_DATA, LW_PROFILE = 1.6, 1.2   # moderate line widths
 DOTTED = (0, (1, 0.9))   # dot 1, gap 0.9 line widths
 
-# hue = quantity
-HUE = {"MCL": "#247BA8", "LCL": "#C43C50", "PCL": "#199879", "CAP": "#7653A5",
-       "AP": "#8C510A", "VV": "#D95F02", "IE": "#CE1256", "gapM": "#247BA8", "gapL": "#C43C50",
+# Manuscript-wide color system:
+#   hue = ligament identity (MCL, LCL, PCL, capsule; medial/lateral gaps take the MCL/LCL hues),
+#   shade (light to dark) = calibration condition, the same three levels in every figure (COND_SHADE),
+#   neutral grays = quantitative indices and comparisons of calibration conditions (COND_GRAY),
+#   loading-mode accents = AP, VV and IE tests.
+HUE = {"MCL": "#2474A6", "LCL": "#D64B59", "PCL": "#16876C", "CAP": "#8064A8",
+       "AP": "#8C510A", "VV": "#D97706", "IE": "#C2185B", "gapM": "#2474A6", "gapL": "#D64B59",
        "gray": "#5A5A5A", "slate": "#3F5068"}
+COND_SHADE = (0.3, 0.65, 1.0)                    # least, intermediate and most calibration information
+COND_GRAY = ("#B8B8B8", "#6E6E6E", "#222222")    # the same three levels in neutral gray (legends, Fig. 3B)
 
 
 def mix(a: str, b: str, w: float) -> tuple:

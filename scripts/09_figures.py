@@ -10,7 +10,7 @@ import matplotlib.colors as mcolors
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from knee.plotstyle import (setup, letter, grid, shade, HUE, LW_DATA, LW_PROFILE, WIDTH,  # noqa: E402
+from knee.plotstyle import (setup, letter, grid, shade, HUE, COND_SHADE, COND_GRAY, LW_DATA, LW_PROFILE, WIDTH,  # noqa: E402
                             sequential_levels)
 import matplotlib.pyplot as plt                                      # noqa: E402
 from matplotlib.patches import FancyBboxPatch, Polygon, Patch        # noqa: E402
@@ -26,7 +26,7 @@ PLAB = {"k_MCL": r"$k_\mathrm{MCL}$", "eps_MCL": r"$\varepsilon_{\mathrm{r},\mat
         "k_LCL": r"$k_\mathrm{LCL}$", "eps_LCL": r"$\varepsilon_{\mathrm{r},\mathrm{LCL}}$",
         "k_PCL": r"$k_\mathrm{PCL}$", "eps_PCL": r"$\varepsilon_{\mathrm{r},\mathrm{PCL}}$",
         "k_CAP": r"$k_\mathrm{CAP}$", "eps_CAP": r"$\varepsilon_{\mathrm{r},\mathrm{CAP}}$"}
-SUB_SHADE = {"Gaps": 0.3, "Gaps+VV": 0.62, "All": 1.0}
+SUB_SHADE = dict(zip(("Gaps", "Gaps+VV", "All"), COND_SHADE))
 SUBLAB = {"All": "Full exam", "All 0": r"Full exam 0$^\circ$", "All 0/90": r"Full exam 0$^\circ$/90$^\circ$",
           "Gaps 0/90": r"Gaps 0$^\circ$/90$^\circ$"}   # display names of subsets   # case shades of the measurement subsets
 DOT = (0, (1, 0.9))
@@ -120,8 +120,8 @@ def knee_view(ax, parts, view: str, fs: float = 9.0, origins: bool = False) -> N
         h = np.array([pf[hax], pt[hax]]) * hs
         v = np.array([pf[2], pt[2]])
         ax.plot(h, v, color=HUE[g], lw=1.1, zorder=3, solid_capstyle="round")
-        ax.plot(h[0], v[0], "o", ms=MS_ATT, mfc=HUE[g], mec="k", mew=0.4, zorder=4)
-        ax.plot(h[1], v[1], "o", ms=MS_ATT, mfc="white", mec=HUE[g], mew=0.8, zorder=4)
+        ax.plot(h[0], v[0], "o", ms=MS_ATT, mfc="k", mec="k", mew=0.4, zorder=4)        # femoral: black
+        ax.plot(h[1], v[1], "o", ms=MS_ATT, mfc="white", mec="k", mew=0.6, zorder=4)    # tibial: white
     if origins:
         for (z0, lab, tx, ty) in ((0.0, r"$O_\mathrm{F}$", -28, -66), (T_REF[2], r"$O_\mathrm{T}$", -4, -66)):
             ax.plot(0, z0, marker="o", ms=3.8, mfc="white", mec="k", mew=0.7, zorder=6)
@@ -195,8 +195,8 @@ def knee_iso(ax, parts, view: str, fs: float = 7.5) -> None:
     for n, (g, pf, pt) in BUNDLES.items():
         if n in labelled:
             a, b = P(pf), P(pt)
-            ax.plot(*a, "o", ms=3.4, mfc=HUE[g], mec="k", mew=0.4, zorder=4)
-            ax.plot(*b, "o", ms=3.4, mfc="white", mec=HUE[g], mew=1.0, zorder=4)
+            ax.plot(*a, "o", ms=3.4, mfc="k", mec="k", mew=0.4, zorder=4)
+            ax.plot(*b, "o", ms=3.4, mfc="white", mec="k", mew=0.7, zorder=4)
     for z0, lab in ((0.0, r"$O_\mathrm{F}$"), (T_REF[2], r"$O_\mathrm{T}$")):
         p = P([0, 0, z0])
         ax.plot(*p, marker="o", ms=3.8, mfc="white", mec="k", mew=0.9, zorder=6)
@@ -230,8 +230,8 @@ def knee_iso(ax, parts, view: str, fs: float = 7.5) -> None:
 
 def attach_legend(fig, rect, ncol: int, fs: float = 8.5) -> None:
     lg = fig.add_axes(rect); lg.axis("off")
-    lg.legend([Line2D([], [], ls="none", marker="o", ms=4, mfc="#5A5A5A", mec="k", mew=0.4),
-               Line2D([], [], ls="none", marker="o", ms=4, mfc="white", mec="#5A5A5A", mew=0.9)] +
+    lg.legend([Line2D([], [], ls="none", marker="o", ms=4, mfc="k", mec="k", mew=0.4),
+               Line2D([], [], ls="none", marker="o", ms=4, mfc="white", mec="k", mew=0.7)] +
               [Line2D([], [], color=HUE[g], lw=1.6) for g in GROUPS],
               ["femoral attachment", "tibial attachment"] + [GLAB[g] for g in GROUPS],
               loc="center", ncol=ncol, fontsize=fs, handlelength=1.2, columnspacing=1.0)
@@ -426,7 +426,7 @@ def fig2() -> None:
     ax.set_ylim(-1, 0.5); ax.set_yticks([-1, -0.5, 0, 0.5]); ax.set_yticklabels(["$-1$", "$-0.5$", "$0$", "$0.5$"])
     ax.yaxis.set_label_position("right")
     ax.tick_params(axis="y", labelleft=False, labelright=True)
-    ax.legend([Patch(fc=shade(HUE["gray"], s), ec="k", lw=0.4) for s in SUB_SHADE.values()], [SUBLAB.get(n, n) for n in SUB_SHADE],
+    ax.legend([Patch(fc=c, ec="k", lw=0.4) for c in COND_GRAY], [SUBLAB.get(n, n) for n in SUB_SHADE],
               loc="upper right")
     ax.set_title("stiffness-strain correlation", fontsize=12); letter(ax, "b"); ax.texts[-1].set_position((-12, 4))
     save(fig, "fig2_identifiability")
@@ -439,8 +439,8 @@ def fig3() -> None:
     """Least-squares calibration: parameter error (top) and held-out passive laxity error (bottom), same 40 knees."""
     ho = np.load(RES / "lsq" / "heldout.npz")
     T = ho["theta_true"]
-    fits = [("gaps", "gaps only, nominal attachments", 0.35), ("nominal", "full exam, nominal attachments", 0.7),
-            ("known", "full exam, true attachments", 1.0)]
+    fits = [("gaps", "gaps only, nominal attachments", COND_SHADE[0]), ("nominal", "full exam, nominal attachments", COND_SHADE[1]),
+            ("known", "full exam, true attachments", COND_SHADE[2])]
     W, H = WIDTH, 4.25
     fig = plt.figure(figsize=(W, H))
     ax = fig.add_axes([0.62 / W, 2.62 / H, 3.55 / W, 1.36 / H])
@@ -457,7 +457,7 @@ def fig3() -> None:
     ax.set_ylabel(r"RMSE $\hat\vartheta$ [-]")
     ax.set_title("parameter error (normalized)", fontsize=12); letter(ax, "a")
     lg = fig.add_axes([4.25 / W, 2.62 / H, 2.2 / W, 1.36 / H]); lg.axis("off")
-    lg.legend([Patch(fc=shade(HUE["gray"], sh), ec="k", lw=0.4) for *_, sh in fits] + [Line2D([], [], color="k", lw=1.4, ls="-")],
+    lg.legend([Patch(fc=c, ec="k", lw=0.4) for c in COND_GRAY] + [Line2D([], [], color="k", lw=1.4, ls="-")],
               [lab for _, lab, _ in fits] + ["prior center"], loc="center left", fontsize=9, handlelength=1.4)
     names = list(ho["h_names"])
     kinds = {"AP": [i for i, n in enumerate(names) if n.split("@")[0] in ("ant", "post") or n.endswith(":ap@45")],
@@ -470,7 +470,12 @@ def fig3() -> None:
     rm = lambda e, idx: np.sqrt(((ho[f"h_{e}"][:, idx] - true[:, idx]) ** 2).mean())
     y = np.arange(len(est))[::-1]
     axb = fig.add_axes([1.95 / W, 0.42 / H, 1.85 / W, 1.62 / H])
-    axb.barh(y, [rm(e, kinds["AP"]) for e, _ in est], height=0.55, color=HUE["AP"], edgecolor="k", lw=0.4)
+    # bars compare calibration conditions, so they are gray: the prior center and the true-parameter reference are
+    # white (hatched for the reference); the three calibrations take the condition grays of panel A
+    est_fc = ["white", *COND_GRAY, "white"]
+    est_hatch = [None, None, None, None, "////"]
+    for yy, (e, _), fc, ht in zip(y, est, est_fc, est_hatch):
+        axb.barh(yy, rm(e, kinds["AP"]), height=0.55, color=fc, edgecolor="k", lw=0.4, hatch=ht)
     apmax = max(rm(e, kinds["AP"]) for e, _ in est)
     axb.set_xlabel("AP RMSE [mm]"); axb.set_xlim(0, 1.15 * apmax); axb.xaxis.set_major_locator(plt.MaxNLocator(3, integer=True))
     axb.set_yticks(y); axb.set_yticklabels([lab for _, lab in est], fontsize=10, linespacing=0.95)
