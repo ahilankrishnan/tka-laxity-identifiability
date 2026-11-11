@@ -27,7 +27,8 @@ PLAB = {"k_MCL": r"$k_\mathrm{MCL}$", "eps_MCL": r"$\varepsilon_{\mathrm{r},\mat
         "k_PCL": r"$k_\mathrm{PCL}$", "eps_PCL": r"$\varepsilon_{\mathrm{r},\mathrm{PCL}}$",
         "k_CAP": r"$k_\mathrm{CAP}$", "eps_CAP": r"$\varepsilon_{\mathrm{r},\mathrm{CAP}}$"}
 SUB_SHADE = {"Gaps": 0.3, "Gaps+VV": 0.62, "All": 1.0}
-SUBLAB = {"All": "Full exam", "All 0": "Full exam 0", "All 0/90": "Full exam 0/90"}   # display names of subsets   # case shades of the measurement subsets
+SUBLAB = {"All": "Full exam", "All 0": r"Full exam 0$^\circ$", "All 0/90": r"Full exam 0$^\circ$/90$^\circ$",
+          "Gaps 0/90": r"Gaps 0$^\circ$/90$^\circ$"}   # display names of subsets   # case shades of the measurement subsets
 DOT = (0, (1, 0.9))
 
 
@@ -134,11 +135,26 @@ def knee_view(ax, parts, view: str, fs: float = 9.0, origins: bool = False) -> N
                                                                   lw=0.5, color="#606060", mutation_scale=1))
     ax.text(-12, -95, left, fontsize=8, ha="right", va="center", color="#606060")
     ax.text(12, -95, right, fontsize=8, ha="left", va="center", color="#606060")
+    # axis triad at the lower left: in-plane axes as arrows, the viewing axis as a dot (toward) or cross (away)
+    bx, by, L = -88.0, -97.0, 12.0
+    tri = dict(arrowstyle="-|>,head_length=2.2,head_width=1.0", lw=0.6, color="#303030", mutation_scale=1,
+               shrinkA=0, shrinkB=0)
+    names = "xyz"
+    # horizontal axis of the view points right for hs = +1 and left for hs = -1, so the triad starts on its tail side
+    x0t = bx if hs > 0 else bx + L
+    ax.annotate("", xy=(x0t + hs * L, by), xytext=(x0t, by), arrowprops=tri)
+    ax.text(x0t + hs * (L + 4.5), by, f"${names[hax]}$", fontsize=8, ha="center", va="center")
+    ax.annotate("", xy=(x0t, by + L), xytext=(x0t, by), arrowprops=tri)
+    ax.text(x0t, by + L + 4, "$z$", fontsize=8, ha="center", va="center")
+    ax.plot(x0t, by, marker="o", ms=4.2, mfc="white", mec="#303030", mew=0.6, zorder=6)
+    ax.plot(x0t, by, marker="." if ds > 0 else "x", ms=2.6 if ds > 0 else 2.6, mec="#303030", mfc="#303030",
+            mew=0.6, zorder=7)
+    ax.text(x0t - hs * 6.0, by, f"${names[dax]}$", fontsize=8, ha="center", va="center")
     items = sorted(((BUNDLES[n][2][hax] * hs, BUNDLES[n][2][2], n) for n in labelled), key=lambda q: q[1])
     used = {"L": [], "R": []}
     for hx, vz, n in items:
         side = "L" if hx < 0 else "R"
-        ty = vz
+        ty = max(vz, -70.0) if side == "L" else vz      # keep left labels clear of the axis triad
         while any(abs(ty - u) < 12 for u in used[side]):
             ty += 12
         used[side].append(ty)
@@ -223,13 +239,13 @@ def attach_legend(fig, rect, ncol: int, fs: float = 8.5) -> None:
 
 def fig1() -> None:
     """Overview. (A) Ligament model in four views with ligament legend and loading conditions.
-    (B) Workflow of the current study and the intended clinical use."""
+    (B) Workflow of the current study and the intended surgical use."""
     from knee.geometry3d import build
     from matplotlib.patches import FancyArrowPatch, FancyBboxPatch as FBP
     parts, _ = build()
     FT, FL, FB = 12, 9, 8.5          # titles, labels, box text (as in Figures 2 and 3)
     GREY, EDGE = "#606060", "#4A4A4A"
-    vw = 2.14; vh = vw * 122 / 168; gap = 0.36; hb = 1.55
+    vw = 2.24; vh = vw * 122 / 168; gap = 0.36; hb = 1.75
     y0 = hb + 0.42
     H = y0 + 2 * vh + gap + 0.44
     W = WIDTH
@@ -237,15 +253,15 @@ def fig1() -> None:
 
     def head(x, y, letter_, title):
         fig.text(x / W, y / H, r"\textbf{%s}" % letter_, fontsize=15, ha="left", va="baseline")
-        fig.text((x + 0.24) / W, y / H, title, fontsize=FT, ha="left", va="baseline")
+        fig.text((x + 0.24) / W, y / H, r"\underline{%s}" % title, fontsize=FT, ha="left", va="baseline")
 
     head(0.02, H - 0.22, "A", "ligament model")
     for k, v in enumerate(("anterior", "medial", "posterior", "lateral")):
         r_, c_ = divmod(k, 2)
-        ax = fig.add_axes([(0.02 + c_ * (vw + 0.06)) / W, (y0 + (1 - r_) * (vh + gap)) / H, vw / W, vh / H])
+        ax = fig.add_axes([(0.02 + c_ * (vw + 0.04)) / W, (y0 + (1 - r_) * (vh + gap)) / H, vw / W, vh / H])
         knee_view(ax, parts, v, fs=FL, origins=(v == "anterior"))
     # right column: ligament legend and loading conditions on one icon column and one text column
-    xr = 2 * vw + 0.26
+    xr = 2 * vw + 0.16
     hk = 2 * vh + gap
     axk = fig.add_axes([xr / W, y0 / H, (W - xr - 0.02) / W, hk / H])
     axk.set_xlim(0, 100); axk.set_ylim(0, 100); axk.axis("off")
@@ -285,11 +301,11 @@ def fig1() -> None:
                  bbox=dict(boxstyle="circle,pad=0.15", fc="white", ec="k", lw=0.5))
         axk.text(XT, yc, s_, ha="left", va="center", fontsize=FL, linespacing=1.1)
     # B: workflow, left to right
-    head(0.02, hb + 0.14, "B", "study workflow and intended clinical use")
+    head(0.02, hb + 0.14, "B", "study workflow and intended surgical use")
     axb = fig.add_axes([0.02 / W, 0.03 / H, (W - 0.04) / W, (hb - 0.12) / H])
     axb.set_xlim(0, 100); axb.set_ylim(0, 100); axb.axis("off")
     arr = dict(arrowstyle="-|>,head_length=2.6,head_width=1.3", lw=0.7, color=EDGE, shrinkA=0, shrinkB=0, mutation_scale=1)
-    BW, BH = 12.0, 30.0
+    BW, BH = 12.0, 36.0
 
     def box(x0, yc_, s_, fc="#F2F3F5"):
         axb.add_patch(FBP((x0, yc_ - BH / 2), BW, BH, boxstyle="round,pad=0,rounding_size=1.2", fc=fc, ec=EDGE, lw=0.6))
@@ -298,24 +314,26 @@ def fig1() -> None:
     def arrow(x0, x1, y):
         axb.annotate("", xy=(x1, y), xytext=(x0, y), arrowprops=arr)
 
-    YM, YU, YL = 47, 76, 17
+    YM, YU, YL = 47, 76, 19
     axb.text(0, 99, r"\textsc{current study}", fontsize=FL, ha="left", va="top", color=GREY)
     box(0, YM, "synthetic\nligament\nparameters")
     arrow(BW, 15.0, YM)
-    box(15.0, YM, "virtual\nexamination\n+ noise")
+    box(15.0, YM, "virtual\nlaxity\nexamination")
+    axb.text(15.0 + BW / 2, YM - BH / 2 - 4, "with measurement\nnoise", ha="center", va="top", fontsize=8, linespacing=1.05,
+             style="italic", color=GREY)
     xt = 15.0 + BW + 1.6
     axb.plot([15.0 + BW, xt], [YM, YM], color=EDGE, lw=0.7)
     axb.plot([xt, xt], [YL, YU], color=EDGE, lw=0.7)
     arrow(xt - 0.05, 30.2, YU); arrow(xt - 0.05, 30.2, YL)
-    box(30.2, YU, "local Fisher\ninformation")
+    box(30.2, YU, "local Fisher\nanalysis")
     box(30.2, YL, "least-squares\ncalibration")
     arrow(30.2 + BW, 45.2, YL)
     box(45.2, YL, "held-out\npassive laxity")
-    # intended clinical use: dashed section
+    # intended surgical use: dashed section
     x0c = 59.0
     axb.add_patch(FBP((x0c, 1), 100 - x0c - 0.3, 98, boxstyle="round,pad=0,rounding_size=1.5", fill=False, ec=GREY,
                       lw=0.6, ls=(0, (3, 2))))
-    axb.text(x0c + 1.2, 95, r"\textsc{intended clinical use}", fontsize=FL, ha="left", va="top", color=GREY)
+    axb.text(x0c + 1.2, 95, r"\textsc{intended surgical use}", fontsize=FL, ha="left", va="top", color=GREY)
     xs = [x0c + 1.2 + k * (BW + 1.4) for k in range(3)]
     for k, s_ in enumerate(("instrumented\ntrial\nexamination", "model\nupdate", "predict effects\nof an\nadjustment")):
         box(xs[k], YM, s_, fc="white")

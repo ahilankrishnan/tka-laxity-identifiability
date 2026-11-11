@@ -4,13 +4,11 @@
 \setcounter{table}{0}
 \renewcommand{\thetable}{S\arabic{table}}
 
-This supplement gives the information needed to reproduce the model at a high level. All remaining details follow the released code.
-
 \subsection*{Forward-model characterization}
 
 With increasing flexion under compression, the tibia of the nominal knee translated anteriorly relative to the femur, from \SIrange{2.0}{9.0}{\milli\meter} between \SI{0}{\degree} and \SI{90}{\degree}, and rotated internally from \SIrange{3}{16}{\degree} (\autoref{fig:forward}A).
 The MCL carried most of the ligament force in extension, the PCL took over between \SI{65}{\degree} and \SI{70}{\degree} of flexion, and the LCL slackened within the first \SI{20}{\degree} (\autoref{fig:forward}B).
-Across the \num{9999} converged characterization knees, the median lateral gap exceeded the median medial gap at every flexion angle, and varus laxity exceeded valgus laxity.
+Across the \num{9999} converged characterization knees (the forward solution failed to converge for one of the \num{10000} knees), the median lateral gap exceeded the median medial gap at every flexion angle, and varus laxity exceeded valgus laxity.
 This asymmetry is consistent with the three-bundle medial restraint and the more conforming medial dish.
 The median total laxity was \SIrange{9}{10}{\milli\meter} for AP, \SIrange{4}{9}{\degree} for VV, and \SIrange{22}{34}{\degree} for IE.
 External rotation exceeded internal rotation in flexion.
@@ -45,6 +43,12 @@ Reference strain $\varepsilon_\mathrm{r}$ [\si{\percent}] & nominal knee & 4 & 4
 \bottomrule
 \end{tabular}
 \end{table}
+
+\subsection*{Equilibrium solver}
+
+The Jacobian of \autoref{eq:equilibrium} was computed by forward differences, and each Newton step was limited to \SI{2}{\milli\meter} for AP and medial--lateral translation, \SI{1}{\milli\meter} for proximal translation, and \SIlist{0.05;0.1}{\radian} for varus and internal rotation.
+Iterations stopped when the largest residual fell below \SI{1e-4}{\newton}, with moments divided by a length scale of \SI{25}{\milli\meter}.
+If a solve did not reach a residual below \SI{0.01}{\newton}, the load was applied in 3, 8, and then 20 equal increments.
 
 \subsection*{Path dependence of the equilibrium solutions}
 
@@ -85,6 +89,6 @@ true parameters, nominal attachment sites & 0.97 (0.55--1.59) & 0.68 (0.43--1.05
 \end{tabular}
 \end{table}
 
-\subsection*{Termination of the least-squares fits}
+\subsection*{Stopping criteria of the least-squares fits}
 
 All fits stopped before the budget of 500 residual evaluations. SciPy reports why each fit stopped: 1 for the gradient tolerance, 2 for the fit-error tolerance, 3 for the step tolerance, and 4 for both the fit-error and step tolerances. The 150 full-examination fits with nominal attachment sites ended with status 2, 3, and 4 in 7, 139, and 4 fits, after at most 68 evaluations. The fits with true attachment sites ended with status 2, 3, and 4 in 19, 118, and 13 fits, after at most 105 evaluations. The gaps-only fits ended with status 1, 2, and 3 in 14, 7, and 129 fits, after at most 222 evaluations. A stopping criterion establishes numerical termination, not global optimality.
