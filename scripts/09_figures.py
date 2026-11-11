@@ -315,7 +315,7 @@ def fig1() -> None:
         axb.annotate("", xy=(x1, y), xytext=(x0, y), arrowprops=arr)
 
     YM, YU, YL = 47, 76, 19
-    axb.text(0, 99, r"\textsc{current study}", fontsize=FL, ha="left", va="top", color=GREY)
+    axb.text(0, 99, r"\underline{current study}", fontsize=FL, ha="left", va="top", color=GREY)
     box(0, YM, "synthetic\nligament\nparameters")
     arrow(BW, 15.0, YM)
     box(15.0, YM, "virtual\nlaxity\nexamination")
@@ -333,7 +333,7 @@ def fig1() -> None:
     x0c = 59.0
     axb.add_patch(FBP((x0c, 1), 100 - x0c - 0.3, 98, boxstyle="round,pad=0,rounding_size=1.5", fill=False, ec=GREY,
                       lw=0.6, ls=(0, (3, 2))))
-    axb.text(x0c + 1.2, 95, r"\textsc{intended surgical use}", fontsize=FL, ha="left", va="top", color=GREY)
+    axb.text(x0c + 1.2, 95, r"\underline{intended surgical use}", fontsize=FL, ha="left", va="top", color=GREY)
     xs = [x0c + 1.2 + k * (BW + 1.4) for k in range(3)]
     for k, s_ in enumerate(("instrumented\ntrial\nexamination", "model\nupdate", "predict effects\nof an\nadjustment")):
         box(xs[k], YM, s_, fc="white")
