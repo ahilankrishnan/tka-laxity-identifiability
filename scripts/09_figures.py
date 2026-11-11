@@ -53,7 +53,7 @@ def heat(ax, M, rows, cols, cmap, norm):
     for i in range(M.shape[0]):
         for j in range(M.shape[1]):
             ax.text(j, i, f"{M[i, j]:.2f}", ha="center", va="center", fontsize=6.5,
-                    color="white" if M[i, j] >= 0.6 else "black")
+                    color="white" if M[i, j] < 0.4 else "black")   # dark (low) cells
     ax.set_xticks(range(len(cols))); ax.set_xticklabels(cols, rotation=45, ha="right", rotation_mode="anchor", fontsize=9)
     ax.set_yticks(range(len(rows))); ax.set_yticklabels(rows, fontsize=9)
     ax.tick_params(top=False, right=False, length=0)
