@@ -1,13 +1,13 @@
 """Numerical checks reported in the Supplementary Material.
 
-1. Path dependence: outputs with the default loading path (INCREMENTS[0] increments) versus every load
-   applied in 20 increments, (a) for the examinations of test knees 40-119 with their generating parameters
+1. Path dependence: outputs with the default loading path versus a path twice as fine (half the
+   increment limits of Knee.solve_path, and 20 increments for the seating and gap solves), (a) for the examinations of test knees 40-119 with their generating parameters
    and (b) for the held-out predictions of all retained fits; counts outputs that differ by more than
    0.05 mm or deg.
 2. Sensitivity outliers: valid sensitivity matrices with an absolute noise-normalized sensitivity above 300,
    and the largest change of the median identifiability indices without them.
 3. Step check: largest change of the median indices between steps 0.02 and 0.001 on the same knees and
-   the same (clipped) evaluation points.
+   the same evaluation points (each knee's own parameters).
 """
 import sys, json
 from pathlib import Path
@@ -25,7 +25,7 @@ z = np.load(ROOT / "results" / "data" / "test_nominal.npz")
 D = {k: z[k] for k in ("theta", "offsets")}
 IDF = ROOT / "results" / "identifiability"
 LSQ = ROOT / "results" / "lsq"
-FINE = 20
+FINE = 20   # increments of the seating and gap solves on the fine path
 
 
 def fine(self, theta, load=None, q0=None, fixed=None):
@@ -37,26 +37,28 @@ def fine(self, theta, load=None, q0=None, fixed=None):
 
 
 def both(fn, knee):
-    """Outputs and flags of fn(knee) with the default and with the fine loading path."""
-    default = M.Knee.solve_robust
+    """Outputs and flags of fn(knee) with the default and with a twice finer loading path."""
+    default, dq, s0, smin = M.Knee.solve_robust, M.PATH_DQ.copy(), M.PATH_STEP0, M.PATH_STEP_MIN
     a = fn(knee)
     M.Knee.solve_robust = fine
+    M.PATH_DQ, M.PATH_STEP0, M.PATH_STEP_MIN = dq / 2, s0 / 2, smin / 2
     try:
         b = fn(knee)
     finally:
         M.Knee.solve_robust = default
+        M.PATH_DQ, M.PATH_STEP0, M.PATH_STEP_MIN = dq, s0, smin
     return a, b
 
 
 def job_exam(i):
     (y1, ok1), (y2, ok2) = both(examine, M.Knee(params=from_vector(D["theta"][i]), attach_offsets=D["offsets"][i]))
-    return np.abs(y1 - y2), bool(ok1 and ok2)
+    return np.abs(y1 - y2) if (ok1 and ok2) else np.zeros_like(y1), (bool(ok1), bool(ok2))
 
 
 def job_held(args):
     theta, offs = args
     (_, h1, ok1), (_, h2, ok2) = both(heldout, M.Knee(params=from_vector(np.clip(theta, 0, 1)), attach_offsets=offs))
-    return np.abs(h1 - h2), bool(ok1 and ok2)
+    return np.abs(h1 - h2) if (ok1 and ok2) else np.zeros_like(h1), (bool(ok1), bool(ok2))
 
 
 def medians(Js, name):
@@ -80,15 +82,17 @@ if __name__ == "__main__":
         rh = p.map(job_held, held_jobs)
     d = np.array([a for a, _ in r]); dh = np.array([a for a, _ in rh])
     out.update(path_knees=80, path_outputs=int(d.size), path_changed=int((d > 0.05).sum()),
-               path_max_change=float(d.max()), path_all_converged=all(o for _, o in r),
+               path_max_change=float(d.max()), path_converged_both=sum(all(o) for _, o in r),
+               path_flag_disagree=sum(o[0] != o[1] for _, o in r),
                path_fitted_predictions=len(rh), path_fitted_outputs=int(dh.size),
                path_fitted_changed=int((dh > 0.05).sum()), path_fitted_max_change=float(dh.max()),
-               path_fitted_all_converged=all(o for _, o in rh))
+               path_fitted_converged_both=sum(all(o) for _, o in rh),
+               path_fitted_flag_disagree=sum(o[0] != o[1] for _, o in rh))
     S = json.loads((IDF / "summary.json").read_text())
     J = np.load(IDF / "summary_J.npy")
     m = (np.abs(J) / noise_sd()[None, :, None]).max(axis=(1, 2))
     bad = np.where(m > 300)[0]; good = np.setdiff1d(np.arange(len(J)), bad)
-    out.update(fisher_valid=len(J), fisher_rejected=S["rejected_knees"], fisher_clipped=S["n_clipped"],
+    out.update(fisher_valid=len(J), fisher_rejected=S["rejected_knees"], fisher_outside=S["n_outside"],
                fd_outlier_knees=int(bad.size),
                fd_outlier_max_change=float(max(np.abs(medians(J, n) - medians(J[good], n)).max() for n in SUBSETS)))
     S2 = json.loads((IDF / "summary_h0.001_n50.json").read_text())

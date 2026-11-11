@@ -36,16 +36,18 @@ All results are from simulated knees. No patient data are used.
 | `08_tables.py` | attachment-site table (`manuscript/tab_bundles.tex`) | Table 2 |
 | `09_figures.py [1 2 3 S2]` | `manuscript/figures/*.pdf` | Figs. 1 to 3, Fig. S2 |
 | `10_compare_runs.py A B` | compares every array and number of two result directories (e.g. two computers) | reproducibility check |
+| `11_platform_check.py` | examination and held-out outputs of 60 test knees in a few minutes (`results/platform_check.npz`) | quick cross-computer check |
 
 ## Numerical conventions
 
-- Every load is applied quasi-statically in 5 equal increments, refined to 10, 20, then 40 if any increment
-  fails to converge (`knee/model.py`, `INCREMENTS`). The same loading path is used for data generation,
-  derivatives, fitting, and prediction, so the selected equilibrium branch does not depend on how far a single
-  Newton solve can jump. A solve is accepted only if every increment converges.
+- Each test load is applied from the seated equilibrium by adaptive continuation (`Knee.solve_path`): an
+  increment is accepted only if it converges and moves no coordinate by more than 1 mm or 0.03 rad, otherwise
+  it is halved. A load whose equilibrium cannot be followed continuously is reported as not converged. The
+  seating and gap solves use 5 equal increments, refined to 10, 20, then 40. The same loading path is used for
+  data generation, derivatives, fitting, and prediction. `06_checks.py` repeats the solves on a path twice as fine.
 - A sensitivity matrix with any failed perturbation solve is rejected as a whole (`03_identifiability.py`);
-  the rejected knees are listed in `results/identifiability/summary.json`. Evaluation points are clipped to
-  [0.02, 0.98] for every step, so the step check compares the same points.
+  the rejected knees are listed in `results/identifiability/summary.json`. Sensitivities are evaluated at each
+  knee's own parameters without clipping, so the step check compares the same points.
 - Each least-squares endpoint is re-evaluated; only converged endpoints are retained, and the lowest
   re-evaluated fit error selects the start (`04_lsq.py`).
 
