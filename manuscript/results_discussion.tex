@@ -3,28 +3,29 @@
 
 \subsection{Contact-grid refinement had little effect on the nominal-knee examination}
 
-Refining the contact grid from \SI{1.5}{\milli\meter} to \SI{0.5}{\milli\meter} changed no measurement of the nominal knee by more than \SI{0.04}{\milli\meter} or \SI{0.04}{\degree}, which is more than ten times less than the measurement noise.
-Equilibrium converged for all held-out load cases of the 50 knees used for least squares.
+To verify that contact discretization did not affect the measurements, we refined the contact grid of the rigid-body model from \SI{1.5}{\milli\meter} to \SI{0.5}{\milli\meter}, which changed no measurement of the nominal knee by more than \SI{0.04}{\milli\meter} or \SI{0.04}{\degree}, more than ten times below the measurement noise.
+The \SI{1.5}{\milli\meter} grid was therefore used throughout.
+Equilibrium converged for all held-out load cases of the 50 knees used for least-squares calibration, so held-out predictions were available for every fitted knee.
 
-\subsection{Multiplanar testing strengthens parameter constraints across flexion}
+\subsection{Laxity testing in three planes across flexion improved parameter identifiability}
 
-Joint gaps alone provided local, prior-regularized constraints mainly on the MCL reference strain (\autoref{fig:identifiability}A).
+Joint gaps alone mainly constrained the MCL reference strain (\autoref{fig:identifiability}A).
 With gaps at \SIlist{0;90}{\degree}, as in conventional gap balancing~\autocite{sheth2017surgical}, the identifiability index of every stiffness stayed below 0.1, whereas that of the MCL reference strain was 0.39.
-Each added laxity test then strengthened the constraints on specific ligament groups.
+Each added laxity test then raised the identifiability indices of specific ligament groups.
 Adding AP testing to gaps and VV testing increased the PCL stiffness index from 0.26 to 0.54.
 Adding IE testing instead increased the LCL stiffness index from 0.12 to 0.39 and the capsule stiffness index from 0.29 to 0.62.
 The full examination at extension alone gave a PCL stiffness index of only 0.02, compared with 0.64 at four flexion angles.
 
-\begin{figure}[H]
+\begin{figure}[tbp]
 \centering
 \includegraphics{fig2_identifiability.pdf}
-\caption{\textbf{Multiplanar testing strengthens local parameter constraints, while stiffness and reference strain remain coupled.}
+\caption{\textbf{Laxity testing in three planes improves parameter identifiability, while stiffness and reference strain remain coupled.}
 (A)~Median local identifiability index of each ligament parameter for nine measurement sets across 499 virtual knees with known attachment sites.
 The index is $1 - \sigma_\mathrm{post}/\sigma_\mathrm{prior}$ (\autoref{eq:fisher}), so zero denotes no reduction of the prior standard deviation and one an exactly determined parameter.
 Gaps alone mainly constrained the MCL reference strain, whereas adding VV, AP, and IE laxity tests across flexion raised the indices of most parameters.
 $k$ denotes bundle stiffness and $\varepsilon_\mathrm{r}$ reference strain of the medial collateral (MCL), lateral collateral (LCL), and posterior cruciate ligament (PCL) and the capsule (CAP).
 Gaps are medial and lateral openings, and AP, VV, and IE denote anterior--posterior, varus--valgus, and internal--external laxity.
-``Full exam'' includes gaps and all three laxity tests, and ``0'' and ``0/90'' restrict the flexion angles to \SI{0}{\degree} and to \SIlist{0;90}{\degree}, whereas the other rows use \SIlist{0;30;60;90}{\degree}.
+``Full exam'' includes gaps and all three laxity tests, and ``\SI{0}{\degree}'' and ``\SI{0}{\degree}/\SI{90}{\degree}'' restrict the flexion angles to \SI{0}{\degree} and to \SIlist{0;90}{\degree}, whereas the other rows use \SIlist{0;30;60;90}{\degree}.
 (B)~Median local correlation between log stiffness and reference strain of each ligament group, computed from the covariance in normalized parameter coordinates.
 The MCL and PCL correlations became more strongly negative as laxity tests were added.}
 \label{fig:identifiability}
@@ -34,21 +35,21 @@ With the full examination, the collateral reference-strain indices reached 0.74 
 In contrast, the capsule indices were similar for stiffness (0.64) and reference strain (0.61).
 Log stiffness and reference strain remained negatively correlated in the local covariance approximation, with correlations of $-0.84$ for the MCL and $-0.82$ for the PCL (\autoref{fig:identifiability}B).
 
-\subsection{Agreement with measured laxity does not establish accurate ligament parameters}
+\subsection{Agreement with measured laxity did not ensure accurate ligament parameters}
 
-With the full examination and the nominal attachment sites, least squares fitted the measured laxity closely but did not infer the true parameters accurately (\autoref{fig:calibration}A).
-All 150 fits stopped before the evaluation budget, when the change in fit error or in the parameter step fell below the default tolerances, after at most 68 residual evaluations.
+With the full examination and the nominal attachment sites, least-squares calibration fitted the measured laxity closely but did not infer the true parameters accurately (\autoref{fig:calibration}A).
+All 150 fits stopped before the evaluation budget (Supplementary Material).
 In all 50 knees, the fitted parameters gave a lower fit error than the true parameters with the nominal attachment sites, by a median factor of 5.0, to a median of 29.7.
 The overall normalized parameter RMSE was nevertheless 0.31, similar to the 0.29 of the prior center.
-The collateral reference strains improved on the prior center, whereas the errors of the collateral stiffnesses exceeded those of the prior center.
+The collateral reference strains improved on the prior center, whereas the collateral stiffnesses had larger errors than the prior center.
 In 23 of the 50 knees, the three starts ended more than 0.2 apart in at least one normalized parameter, and in 6 of these knees the starts were distinct by our fit-error criterion.
-Agreement among three starts does not establish a unique global optimum, because the multistart comparison detects, but cannot exhaustively rule out, alternative fits.
+Three starts can detect, but cannot rule out, alternative fits, so agreement among them does not establish a unique global optimum.
 
-\begin{figure}[H]
+\begin{figure}[tbp]
 \centering
 \includegraphics{fig3_calibration.pdf}
 \caption{\textbf{Multiplanar calibration improves held-out laxity prediction, while accurate parameter inference depends on the attachment sites.}
-Results are for 50 test knees with three bounded least-squares starts per knee.
+Results are for 50 test knees with three starts of the bounded least-squares calibration per knee.
 (A)~RMSE of the normalized parameters $\hat\vartheta$, that is, as a fraction of the log-scaled stiffness range or the linear reference-strain range of \autoref{tab:prior}.
 Fits to the full examination with nominal attachment sites had errors similar to those of the prior center, whereas fits with the true attachment sites had the smallest errors.
 Fits to gaps at \SIlist{0;90}{\degree} alone had the largest errors.
@@ -60,8 +61,7 @@ Full-examination fits predicted these load cases better than the true parameters
 The four-gap fits had a median fit error of 0.17, yet their normalized parameter RMSE was 0.40, which exceeded that of the prior center.
 In 43 of the 50 knees, the starts were distinct by the same criterion.
 With only four measurements for eight parameters, the gap fits could not locally constrain all parameters without prior information and did not identify unique parameters.
-
-With the true attachment sites, the full-examination fits had a median fit error of 12.3, close to the value of 12 expected for 32 measurements and eight fitted parameters under a local linear approximation.
+In contrast, the full-examination fits with the true attachment sites had a median fit error of 12.3, close to the value of 12 expected for 32 measurements and eight fitted parameters under a local linear approximation.
 Their normalized parameter RMSE fell from 0.31 to 0.17, with collateral reference-strain errors of 0.13 and 0.10.
 The starts were distinct in only 3 of the 50 knees.
 
@@ -76,51 +76,50 @@ Calibration with the nominal attachment sites took a median of \SI{5.2}{\minute}
 
 In our study, joint gaps, the measurement on which gap-balancing techniques rely~\autocite{sheth2017surgical}, poorly constrained ligament stiffness.
 Knees with different collateral stiffnesses could therefore present similar gaps yet respond differently to varus, anterior, and rotational loads.
-Multiplanar testing across flexion strengthened the constraints on most parameters.
+Laxity testing in all three planes across flexion raised the identifiability of most parameters.
 This result is consistent with the plane- and flexion-dependent contributions of ligaments and capsule documented in native-knee sectioning studies~\autocite{markolf1976stiffness}.
 These comparisons support testing across planes and flexion angles, but they do not establish a minimal examination.
-Because attachment sites were held fixed in the Fisher analysis, these indices describe information conditional on known attachment sites, whereas the least-squares fits show how attachment mismatch degrades parameter inference.
+These indices assume known attachment sites, whereas the least-squares fits show how attachment mismatch degrades parameter inference.
 
 The persistent coupling between stiffness and reference strain indicates that our examination weakly constrained some parameter combinations.
 Under the force--strain law of \textcite{blankevoort1991ligament} and with a single load magnitude per test, a higher stiffness combined with a lower reference strain can produce ligament forces, and hence laxities, similar to those of a lower stiffness with a higher reference strain.
 Such coupled directions are typical of nonlinear models with many parameters~\autocite{gutenkunst2007universally,raue2009structural,transtrum2015perspective}.
 They imply that laxity-based calibrations~\autocite{harris2016combined,ewing2016estimating} may return one of several parameter sets that fit similarly well.
-Parameter uncertainty should therefore accompany model calibration.
+Reporting parameter uncertainty alongside calibrated parameters may therefore be advisable.
 
 Fits with the nominal attachment sites predicted held-out synthetic laxity well, although their parameter error was no smaller than that of the prior center.
 Supplying the true attachment sites improved the inferred parameters, which is consistent with compensation for attachment mismatch in the fits with nominal attachment sites.
 Separately, multiple parameter sets fitted the gaps closely.
-Thus, agreement with measured laxity alone established neither unique nor accurate parameters.
-Coefficients that absorb attachment mismatch should be treated as effective model parameters rather than direct tissue measurements.
+Thus, in our simulations, agreement with measured laxity alone did not establish unique or accurate parameters.
+Coefficients that absorb attachment mismatch may be better interpreted as effective model parameters than as direct tissue measurements.
 
-Our results also suggest how inference could be improved, although we did not test these remedies.
-Measuring laxity in all three planes is not sufficient by itself, because the full examination already included gaps and all three laxity tests and the coupling persisted.
+Our results also suggest untested ways to improve inference.
+Measuring laxity in all three planes did not appear sufficient by itself, because the full examination already included gaps and all three laxity tests and the coupling persisted.
 Additional load magnitudes may help separate stiffness from reference strain by sampling a broader range of ligament recruitment.
-Locating the attachment sites more precisely, for example from imaging or navigation, could reduce the attachment mismatch that biased these fits.
-Where neither is possible, Bayesian calibration with informative priors can report the remaining uncertainty rather than a single parameter set.
+Locating the attachment sites more precisely, for example from imaging~\autocite{rachmat2014generating} or navigation, could reduce the attachment mismatch that biased these fits.
+Where neither is possible, Bayesian calibration with informative priors could report the remaining uncertainty rather than a single parameter set~\autocite{kennedy2001bayesian}.
 
-The intended clinical use is to personalize a model during an instrumented examination with trial components so that it can help evaluate the mechanical consequences of a proposed adjustment.
+The intended surgical use is to personalize a model during an instrumented examination with trial components so that it can help evaluate the mechanical consequences of a proposed adjustment.
 With further validation, such a workflow may help compare changes in component position, insert thickness, or soft-tissue release, as computational studies have related soft-tissue modifications to multiplanar laxity in other implant designs~\autocite{amiri2012computational}.
 Moreover, parameters that compensate for attachment mismatch may reproduce the current examination yet give unreliable predictions after an intervention changes the load path.
 Our calibration took several minutes per knee, so real-time surgical use remains untested.
-Simulation-trained regression has enabled rapid personalization of implanted hip-capsule models, which suggests a possible route to faster inference, but we did not evaluate that approach here~\autocite{ananthakrishnan2024instantaneous}.
+Simulation-trained regression, which enabled rapid personalization of implanted hip-capsule models, may offer faster inference, although we did not evaluate it here~\autocite{ananthakrishnan2024instantaneous}.
 
-Our study has a few limitations.
-The model is a rigid-body simplification with straight, tension-only ligament bundles, no wrapping, and a simplified posterolateral restraint, which may explain its asymmetric rotational laxity.
+Among the limitations, our model is a rigid-body simplification with straight, tension-only ligament bundles, no wrapping, and a simplified posterolateral restraint, which may explain its asymmetric rotational laxity.
 Adding model detail would not by itself resolve the identifiability problem, because it may introduce further unknowns~\autocite{transtrum2015perspective}.
 The four ligament groups shared parameters across their bundles, whereas real bundles differ in stiffness and recruitment~\autocite{amis2006anatomy}.
 The geometry was generic, and only attachment sites were varied, although bone morphology and component alignment also differ between patients~\autocite{smith2016influence}.
 All data were synthetic, and the model was not compared with measured laxity of replaced knees.
 The preload and independent measurement-noise levels were assumed rather than measured intraoperatively.
 Doubling the noise lowered the indices but preserved the ranking of measurement sets (Supplementary Material).
-Our results therefore concern the passive mechanical calibration of a model, not active postoperative function or patient outcomes, and the responses to releases or insert changes were not evaluated.
-The necessary next step is testing against cadaveric laxity measurements of the kind used for specimen-specific calibration~\autocite{harris2016combined,ewing2016estimating}, ideally combined with tensile tests of the same ligaments~\autocite{butler1986comparison}.
+Our results therefore concern passive model calibration, not postoperative function, patient outcomes, or responses to releases or insert changes.
+A necessary next step is testing against cadaveric laxity measurements of the kind used for specimen-specific calibration~\autocite{harris2016combined,ewing2016estimating}, ideally combined with tensile tests of the same ligaments~\autocite{butler1986comparison}.
 
 %% ------------------------------------------------------------------------------
 \section{Conclusion}
 
 We formalized the question of which intraoperative measurements constrain ligament properties with a local identifiability analysis and least-squares calibration of a knee replacement model.
-Our study shows that joint gaps alone poorly constrained ligament stiffness, whereas multiplanar laxity testing across flexion strengthened local parameter constraints.
+In our model, joint gaps alone poorly constrained ligament stiffness, whereas laxity testing in all three planes across flexion improved local parameter identifiability.
 Agreement with measured laxity alone did not establish unique or accurate ligament parameters, and supplying the true attachment sites reduced parameter error.
 Our findings support broader measurement collection when personalizing knee models for future intraoperative decision support.
 Clinical validation and faster, reliable calibration are needed before such models can guide real-time balancing decisions.
