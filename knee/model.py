@@ -36,6 +36,12 @@ STEP_MAX = np.array([2.0, 2.0, 1.0, 0.05, 0.1])  # Newton step limits (mm, mm, m
 # converge, the whole solve is repeated with the next, finer schedule.  A fixed loading path makes the
 # selected equilibrium branch independent of how far a single Newton solve can jump.
 INCREMENTS = (5, 10, 20, 40)
+# Test loads are applied by adaptive continuation from the seated equilibrium (see Knee.solve_path): a load
+# increment is accepted only if it converges and moves no coordinate by more than PATH_DQ, otherwise it is
+# halved.  The solution thus follows the equilibrium branch continuously from the seated pose.
+PATH_DQ = np.array([1.0, 1.0, 1.0, 0.03, 0.03])   # mm, mm, mm, rad, rad per accepted increment
+PATH_STEP0 = 0.2          # initial and largest load-factor increment
+PATH_STEP_MIN = 1.0 / 4096
 
 # Load = list of (force, point of application, moment) triples, each a 3-vector in the tibial frame.
 Load = Optional[Sequence[tuple]]
@@ -227,6 +233,32 @@ class Knee:
             if ok:
                 break
         return q, ok
+
+    def solve_path(self, theta: float, load: Load, q0: np.ndarray, base: Load = None,
+                   dq_max: Optional[np.ndarray] = None) -> tuple[np.ndarray, bool]:
+        """Equilibrium under `base` + `load`, following the branch from q0, the equilibrium under `base` alone.
+
+        The load factor of `load` grows from 0 to 1.  An increment is accepted only if Newton converges and no
+        coordinate moves by more than dq_max (default PATH_DQ); otherwise the increment is halved."""
+        dq_max = PATH_DQ if dq_max is None else dq_max
+        q = np.array(q0, float)
+        base = list(base or [])
+        lam, dlam = 0.0, PATH_STEP0
+        while lam < 1.0 - 1e-12:
+            dl = min(dlam, 1.0 - lam)
+            lt = lam + dl
+            ld = base + [(lt * np.asarray(f), p, lt * np.asarray(m)) for f, p, m in load]
+            res = lambda x: self.generalized_forces(x, theta, ld)
+            x, r = self._newton(res, q, STEP_MAX)
+            conv = bool(np.all(np.isfinite(r)) and np.max(np.abs(r)) < TOL)
+            if conv and np.all(np.abs(x - q) <= dq_max):
+                q, lam = x, lt
+                dlam = min(2.0 * dl, PATH_STEP0)
+            elif dl > PATH_STEP_MIN:
+                dlam = dl / 2.0
+            else:
+                return q, False
+        return q, True
 
     @staticmethod
     def _newton(res: Callable[[np.ndarray], np.ndarray], x: np.ndarray, smax: np.ndarray,

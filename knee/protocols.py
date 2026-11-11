@@ -53,7 +53,7 @@ def laxity_at(knee: Knee, flex_deg: float, q_guess: Optional[np.ndarray] = None,
     q0, ok = neutral(knee, th, q_guess)
     out, allok = {}, ok
     for name, (load, idx, sc) in _TESTS.items():
-        q, ok = knee.solve_robust(th, [_COMP] + load, q0=q0)
+        q, ok = knee.solve_path(th, load, q0, base=[_COMP])
         out[name] = (q[idx] - q0[idx]) * sc
         allok &= ok
     if with_gaps:
@@ -65,7 +65,7 @@ def laxity_at(knee: Knee, flex_deg: float, q_guess: Optional[np.ndarray] = None,
         allok &= ok
     if extra:
         for name, load in extra.items():
-            q, ok = knee.solve_robust(th, [_COMP] + load, q0=q0)
+            q, ok = knee.solve_path(th, load, q0, base=[_COMP])
             out[name + ":ap"] = q[0] - q0[0]
             out[name + ":vv"] = np.degrees(q[3] - q0[3])
             out[name + ":ie"] = np.degrees(q[4] - q0[4])
