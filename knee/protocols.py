@@ -41,16 +41,32 @@ def feature_names(flex: Sequence[float] = FLEX_TRAIN,
     return [f"{t}@{int(f)}" for f in flex for t in tests]
 
 
-def neutral(knee: Knee, theta: float, q0: Optional[np.ndarray] = None) -> tuple[np.ndarray, bool]:
-    """Equilibrium pose under the seating compression alone."""
-    return knee.solve_robust(theta, [_COMP], q0=q0)
+def neutral(knee: Knee, theta: float, q0: Optional[np.ndarray] = None,
+            theta0: Optional[float] = None) -> tuple[np.ndarray, bool]:
+    """Equilibrium pose under the seating compression alone (the seated pose).
+
+    The knee is seated at full extension from the reference pose and then flexed to theta by adaptive
+    continuation, so the seated pose at every angle lies on one continuous branch.  When q0 is the seated pose
+    at flexion theta0 (rad), the continuation starts from there."""
+    if q0 is None:
+        q0, ok = knee.solve_robust(0.0, [_COMP])
+        ok = ok and knee.is_stable(q0, 0.0, [_COMP])
+        theta0 = 0.0
+    else:
+        ok = True
+    if theta != theta0:
+        q0, ok2 = knee.solve_flex_path(theta0, theta, [_COMP], q0)
+        ok = ok and ok2
+    return q0, ok
 
 
-def laxity_at(knee: Knee, flex_deg: float, q_guess: Optional[np.ndarray] = None, with_gaps: bool = True,
-              extra: Optional[dict] = None) -> tuple[dict, np.ndarray, bool]:
-    """Laxity outputs at one flexion angle; returns dict, neutral pose, convergence flag."""
+def laxity_at(knee: Knee, flex_deg: float, q_prev: Optional[np.ndarray] = None, with_gaps: bool = True,
+              extra: Optional[dict] = None, flex_prev: Optional[float] = None) -> tuple[dict, np.ndarray, bool]:
+    """Laxity outputs at one flexion angle; returns dict, seated pose, convergence flag.
+
+    q_prev is the seated pose at flexion flex_prev (deg), from which the knee is flexed (None: from extension)."""
     th = np.radians(flex_deg)
-    q0, ok = neutral(knee, th, q_guess)
+    q0, ok = neutral(knee, th, q_prev, None if q_prev is None else np.radians(flex_prev))
     out, allok = {}, ok
     for name, (load, idx, sc) in _TESTS.items():
         q, ok = knee.solve_path(th, load, q0, base=[_COMP])
@@ -77,9 +93,10 @@ def examine(knee: Knee, flex: Sequence[float] = FLEX_TRAIN, tests: Optional[Sequ
             with_gaps: bool = True) -> tuple[np.ndarray, bool]:
     """Full examination over flexion; returns feature vector (ordered by feature_names) and flag."""
     tests = tests or ("ant", "post", "var", "val", "int", "ext", "gapM", "gapL")
-    vals, allok, q = [], True, None
+    vals, allok, q, fp = [], True, None, None
     for f in flex:
-        o, q, ok = laxity_at(knee, f, q, with_gaps=with_gaps)
+        o, q, ok = laxity_at(knee, f, q, with_gaps=with_gaps, flex_prev=fp)
+        fp = f
         allok &= ok
         vals += [o[t] for t in tests]
     return np.array(vals), allok
@@ -87,9 +104,10 @@ def examine(knee: Knee, flex: Sequence[float] = FLEX_TRAIN, tests: Optional[Sequ
 
 def heldout(knee: Knee) -> tuple[list[str], np.ndarray, bool]:
     """Outputs under loading conditions excluded from inference."""
-    names, vals, allok, q = [], [], True, None
+    names, vals, allok, q, fp = [], [], True, None, None
     for f in FLEX_HELDOUT:
-        o, q, ok = laxity_at(knee, f, q, with_gaps=False, extra=COMBINED if f == 45.0 else None)
+        o, q, ok = laxity_at(knee, f, q, with_gaps=False, extra=COMBINED if f == 45.0 else None, flex_prev=fp)
+        fp = f
         allok &= ok
         for k_, v in o.items():
             names.append(f"{k_}@{int(f)}")

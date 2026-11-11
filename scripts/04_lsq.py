@@ -33,10 +33,11 @@ GAP_IDX = subset_index("Gaps 0/90")
 
 def gaps_exam(knee: Knee) -> tuple[np.ndarray, bool]:
     """Medial and lateral gaps at 0 and 90 deg (same neutral pose and distraction test as `examine`)."""
-    vals, q, allok = [], None, True
+    vals, q, allok, thp = [], None, True, None
     for f in (0.0, 90.0):
         th = np.radians(f)
-        q, ok = neutral(knee, th, q)
+        q, ok = neutral(knee, th, q, thp)
+        thp = th
         dist = [([0, 0, -DISTRACTION], [0, y_, JOINT_LINE_Z], [0, 0, 0]) for y_ in (-22.0, 22.0)]
         qs = q.copy(); qs[2] -= 0.5
         qg, okg = knee.solve_robust(th, dist, q0=qs, fixed=[0, 1, 4])

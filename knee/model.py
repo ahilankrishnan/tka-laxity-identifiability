@@ -234,22 +234,20 @@ class Knee:
                 break
         return q, ok
 
-    def solve_path(self, theta: float, load: Load, q0: np.ndarray, base: Load = None,
-                   dq_max: Optional[np.ndarray] = None) -> tuple[np.ndarray, bool]:
-        """Equilibrium under `base` + `load`, following the branch from q0, the equilibrium under `base` alone.
+    def _continue(self, residual: Callable[[float], Callable[[np.ndarray], np.ndarray]], q0: np.ndarray,
+                  dq_max: Optional[np.ndarray] = None) -> tuple[np.ndarray, bool]:
+        """Follow an equilibrium branch from q0 (the solution at lambda = 0) to lambda = 1.
 
-        The load factor of `load` grows from 0 to 1.  An increment is accepted only if Newton converges and no
-        coordinate moves by more than dq_max (default PATH_DQ); otherwise the increment is halved."""
+        residual(lam) returns the residual function at continuation parameter lam.  An increment is accepted
+        only if Newton converges and no coordinate moves by more than dq_max (default PATH_DQ); otherwise the
+        increment is halved.  Returns the end point and whether the whole branch was followed."""
         dq_max = PATH_DQ if dq_max is None else dq_max
         q = np.array(q0, float)
-        base = list(base or [])
         lam, dlam = 0.0, PATH_STEP0
         while lam < 1.0 - 1e-12:
             dl = min(dlam, 1.0 - lam)
             lt = lam + dl
-            ld = base + [(lt * np.asarray(f), p, lt * np.asarray(m)) for f, p, m in load]
-            res = lambda x: self.generalized_forces(x, theta, ld)
-            x, r = self._newton(res, q, STEP_MAX)
+            x, r = self._newton(residual(lt), q, STEP_MAX)
             conv = bool(np.all(np.isfinite(r)) and np.max(np.abs(r)) < TOL)
             if conv and np.all(np.abs(x - q) <= dq_max):
                 q, lam = x, lt
@@ -258,8 +256,35 @@ class Knee:
                 dlam = dl / 2.0
             else:
                 return q, False      # the branch cannot be followed continuously (limit point or no convergence)
-        load_end = base + list(load)
-        return q, self.is_stable(q, theta, load_end)
+        return q, True
+
+    def solve_path(self, theta: float, load: Load, q0: np.ndarray, base: Load = None,
+                   dq_max: Optional[np.ndarray] = None) -> tuple[np.ndarray, bool]:
+        """Equilibrium under `base` + `load`, following the branch from q0, the equilibrium under `base` alone.
+
+        The load factor of `load` grows from 0 to 1 by adaptive continuation (see `_continue`); the end state
+        must also be statically stable."""
+        base = list(base or [])
+
+        def residual(lt: float) -> Callable[[np.ndarray], np.ndarray]:
+            ld = base + [(lt * np.asarray(f), p, lt * np.asarray(m)) for f, p, m in load]
+            return lambda x: self.generalized_forces(x, theta, ld)
+
+        q, ok = self._continue(residual, q0, dq_max)
+        return q, ok and self.is_stable(q, theta, base + list(load))
+
+    def solve_flex_path(self, theta0: float, theta1: float, load: Load, q0: np.ndarray,
+                        dq_max: Optional[np.ndarray] = None) -> tuple[np.ndarray, bool]:
+        """Equilibrium under `load` at flexion theta1, following the branch from q0, the equilibrium at theta0.
+
+        Flexion moves from theta0 to theta1 by adaptive continuation (see `_continue`); the end state must
+        also be statically stable."""
+        def residual(lt: float) -> Callable[[np.ndarray], np.ndarray]:
+            th = theta0 + lt * (theta1 - theta0)
+            return lambda x: self.generalized_forces(x, th, load)
+
+        q, ok = self._continue(residual, q0, dq_max)
+        return q, ok and self.is_stable(q, theta1, load)
 
     def is_stable(self, q: np.ndarray, theta: float, load: Load) -> bool:
         """Static stability of an equilibrium: every eigenvalue of dQ/dq has a negative real part."""
