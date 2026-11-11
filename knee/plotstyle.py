@@ -82,9 +82,9 @@ def letter(ax, s: str) -> None:
 
 
 def sequential_levels(n: int = 10, vmin: float = 0.0, vmax: float = 1.0):
-    """Slate-to-white color map with n discrete levels for heat maps: the lowest level is darkest, as in every
-    other figure.  Slate is a muted blue-gray that differs from every ligament and laxity-test hue."""
-    colors = [mix("#FFFFFF", HUE["slate"], f) for f in np.linspace(1.0, 0.0, n)]
+    """White-to-slate color map with n discrete levels for heat maps; slate is a muted blue-gray
+    that differs from every ligament and laxity-test hue."""
+    colors = [mix("#FFFFFF", HUE["slate"], f) for f in np.linspace(0.0, 1.0, n)]
     cmap = ListedColormap(colors)
     bounds = np.linspace(vmin, vmax, n + 1)
     return cmap, BoundaryNorm(bounds, n), bounds
