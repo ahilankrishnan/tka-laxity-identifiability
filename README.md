@@ -18,7 +18,7 @@ All results are from simulated knees. No patient data are used.
 | `knee/subsets.py` | measurement sets and the fixed noise realization |
 | `knee/geometry3d.py`, `knee/plotstyle.py` | surface meshes and figure style |
 | `scripts/` | numbered pipeline, run in order by `scripts/run_all.sh` |
-| `results/` | outputs used in the manuscript (the simulated knees in `results/data/` are regenerated, not stored) |
+| `results/` | outputs used in the manuscript, including the simulated knees and observations in `results/data/` and the run environment in `results/environment.txt` |
 | `manuscript/` | LaTeX source, tables and figures |
 
 ## Pipeline
@@ -31,10 +31,23 @@ All results are from simulated knees. No patient data are used.
 | `03_identifiability.py 0.001 50` | the same with a smaller finite-difference step on 50 knees | step check |
 | `04_lsq.py <stage> <cores>` | least squares for stages `nominal`, `known`, `gaps`, then `heldout` (`results/lsq/`) | Fig. 3 |
 | `05_lsq_summary.py` | fit error and held-out numbers quoted in the text (`results/lsq/summary.json`) | Results |
-| `06_checks.py` | path dependence, sensitivity outliers and step check (`results/checks.json`) | Supplementary Material |
+| `06_checks.py` | path dependence (test knees and all fitted parameter sets), sensitivity outliers and step check (`results/checks.json`) | Supplementary Material |
 | `07_robustness.py` | Fisher analysis with doubled noise and per-knee spread of held-out errors (`results/robustness.json`) | Supplementary Material, Table S2 |
 | `08_tables.py` | attachment-site table (`manuscript/tab_bundles.tex`) | Table 2 |
 | `09_figures.py [1 2 3 S2]` | `manuscript/figures/*.pdf` | Figs. 1 to 3, Fig. S2 |
+| `10_compare_runs.py A B` | compares every array and number of two result directories (e.g. two computers) | reproducibility check |
+
+## Numerical conventions
+
+- Every load is applied quasi-statically in 5 equal increments, refined to 10, 20, then 40 if any increment
+  fails to converge (`knee/model.py`, `INCREMENTS`). The same loading path is used for data generation,
+  derivatives, fitting, and prediction, so the selected equilibrium branch does not depend on how far a single
+  Newton solve can jump. A solve is accepted only if every increment converges.
+- A sensitivity matrix with any failed perturbation solve is rejected as a whole (`03_identifiability.py`);
+  the rejected knees are listed in `results/identifiability/summary.json`. Evaluation points are clipped to
+  [0.02, 0.98] for every step, so the step check compares the same points.
+- Each least-squares endpoint is re-evaluated; only converged endpoints are retained, and the lowest
+  re-evaluated fit error selects the start (`04_lsq.py`).
 
 ## Run
 
@@ -43,7 +56,7 @@ installation with `latex` and `dvipng` on the path is needed for `09_figures.py`
 
 ```
 pip install -r requirements.txt
-bash scripts/run_all.sh     # about 3.5 h on 4 cores
+bash scripts/run_all.sh     # about 10 h on 4 cores
 ```
 
 `results/data/` is created by `01_generate_data.py`. Fig. S2 reads it, so run the full pipeline

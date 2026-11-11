@@ -32,6 +32,10 @@ FD_STEP = 1e-6        # forward-difference step for the Jacobian, mm or rad
 MOMENT_SCALE = 25.0   # mm; divides moments so that force and moment residuals have similar size
 SMOOTH_SQ = 1e-4      # mm^2; squared width of the smoothed positive part in the contact law (0.01 mm)
 STEP_MAX = np.array([2.0, 2.0, 1.0, 0.05, 0.1])  # Newton step limits (mm, mm, mm, rad, rad)
+# Every load is applied quasi-statically in INCREMENTS[0] equal increments; if any increment fails to
+# converge, the whole solve is repeated with the next, finer schedule.  A fixed loading path makes the
+# selected equilibrium branch independent of how far a single Newton solve can jump.
+INCREMENTS = (5, 10, 20, 40)
 
 # Load = list of (force, point of application, moment) triples, each a 3-vector in the tibial frame.
 Load = Optional[Sequence[tuple]]
@@ -200,6 +204,7 @@ class Knee:
         `fixed` lists coordinate indices held at their values in q0."""
         q = Q_REF.copy() if q0 is None else np.array(q0, float)
         free = np.array([i for i in range(5) if not fixed or i not in fixed])
+        ok = True
         for s in range(1, steps + 1):
             lam = s / steps
             ld = None if load is None else [(lam * np.asarray(f), p, lam * np.asarray(m)) for f, p, m in load]
@@ -211,13 +216,13 @@ class Knee:
 
             x, r = self._newton(res, q[free], STEP_MAX[free])
             q[free] = x
-        ok = np.max(np.abs(r)) < TOL
+            ok &= bool(np.all(np.isfinite(r)) and np.max(np.abs(r)) < TOL)   # every increment must converge
         return q, ok
 
     def solve_robust(self, theta: float, load: Load = None, q0: Optional[np.ndarray] = None,
                      fixed: Optional[Sequence[int]] = None) -> tuple[np.ndarray, bool]:
-        """Solve with load continuation (1, 3, 8, 20 increments) until the residual converges."""
-        for steps in (1, 3, 8, 20):
+        """Solve along the fixed loading path (INCREMENTS[0] increments), refining it until every increment converges."""
+        for steps in INCREMENTS:
             q, ok = self.solve(theta, load, q0, fixed, steps)
             if ok:
                 break

@@ -31,17 +31,18 @@ MAX_NFEV = 500
 GAP_IDX = subset_index("Gaps 0/90")
 
 
-def gaps_exam(knee: Knee) -> np.ndarray:
+def gaps_exam(knee: Knee) -> tuple[np.ndarray, bool]:
     """Medial and lateral gaps at 0 and 90 deg (same neutral pose and distraction test as `examine`)."""
-    vals, q = [], None
+    vals, q, allok = [], None, True
     for f in (0.0, 90.0):
         th = np.radians(f)
-        q, _ = neutral(knee, th, q)
+        q, ok = neutral(knee, th, q)
         dist = [([0, 0, -DISTRACTION], [0, y_, JOINT_LINE_Z], [0, 0, 0]) for y_ in (-22.0, 22.0)]
         qs = q.copy(); qs[2] -= 0.5
-        qg, _ = knee.solve_robust(th, dist, q0=qs, fixed=[0, 1, 4])
+        qg, okg = knee.solve_robust(th, dist, q0=qs, fixed=[0, 1, 4])
+        allok &= bool(ok and okg)
         vals += list(knee.gaps(qg, th))
-    return np.array(vals)
+    return np.array(vals), allok
 
 
 def fit_job(args: tuple) -> dict:
@@ -50,13 +51,23 @@ def fit_job(args: tuple) -> dict:
     t0 = time.time()
     if mode == "gaps":
         sd = noise_sd()[GAP_IDX]
-        f = lambda x: gaps_exam(Knee(params=from_vector(x)))
+        sim = lambda x: gaps_exam(Knee(params=from_vector(x)))
     else:
         sd = noise_sd()
-        f = lambda x: examine(Knee(params=from_vector(x), attach_offsets=offs))[0]
+        sim = lambda x: examine(Knee(params=from_vector(x), attach_offsets=offs))
+    n_fail = [0]
+
+    def f(x):
+        y, ok = sim(x)
+        n_fail[0] += not ok          # counted and reported; the endpoint itself must converge (below)
+        return y
+
     r = least_squares(lambda x: (f(x) - y_obs) / sd, x0, bounds=(0, 1), diff_step=1e-2,
                       max_nfev=MAX_NFEV, x_scale=0.2)
-    return dict(i=i, tag=tag, x=r.x.tolist(), x0=list(map(float, x0)), cost=float(r.cost),
+    y_end, ok_end = sim(r.x)          # re-evaluate the endpoint: its cost and convergence decide retention
+    cost_end = float(0.5 * (((y_end - y_obs) / sd) ** 2).sum())
+    return dict(i=i, tag=tag, x=r.x.tolist(), x0=list(map(float, x0)), cost=cost_end, cost_optimizer=float(r.cost),
+                ok_end=bool(ok_end), n_failed_evals=int(n_fail[0]),
                 status=int(r.status), nfev=int(r.nfev), njev=int(r.njev), time=time.time() - t0)
 
 
@@ -93,13 +104,18 @@ def main(stage: str, nproc: int) -> None:
     t0 = time.time()
     with Pool(nproc) as pool:
         res = pool.map(fit_job, jobs, chunksize=1)
-    print(stage, f"{len(res)} fits in {time.time() - t0:.0f} s; limit reached:", sum(r["status"] == 0 for r in res), flush=True)
+    print(stage, f"{len(res)} fits in {time.time() - t0:.0f} s; limit reached:", sum(r["status"] == 0 for r in res),
+          "; endpoints not converged:", sum(not r["ok_end"] for r in res),
+          "; fits with failed evaluations:", sum(r["n_failed_evals"] > 0 for r in res), flush=True)
     (OUT / f"{stage}.json").write_text(json.dumps(dict(knees=sel.tolist(), max_nfev=MAX_NFEV, fits=res), indent=1))
 
 
 def best_fits(stage):
+    """Lowest re-evaluated fit error per knee among starts whose endpoint converged."""
     best = {}
     for f in json.loads((OUT / f"{stage}.json").read_text())["fits"]:
+        if not f["ok_end"]:
+            continue
         if f["i"] not in best or f["cost"] < best[f["i"]]["cost"]:
             best[f["i"]] = f
     return best

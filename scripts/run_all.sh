@@ -1,7 +1,9 @@
 #!/bin/bash
-# Full pipeline, about 3.5 h on 4 cores. Usage: bash scripts/run_all.sh
+# Full pipeline, about 10 h on 4 cores. Usage: bash scripts/run_all.sh
 set -e
 cd "$(dirname "$0")/.."
+mkdir -p results
+python3 -c "import sys, platform, numpy, scipy, matplotlib; print(sys.version); print(platform.platform()); print('numpy', numpy.__version__, 'scipy', scipy.__version__, 'matplotlib', matplotlib.__version__)" > results/environment.txt
 python3 scripts/01_generate_data.py
 python3 scripts/02_verify_forward.py
 python3 scripts/03_identifiability.py 0.02

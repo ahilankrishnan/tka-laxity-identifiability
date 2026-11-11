@@ -19,13 +19,17 @@ for stage, nmeas in (("gaps", 4), ("nominal", 32), ("known", 32)):
     by = {}
     for f in fits:
         by.setdefault(f["i"], []).append(f)
-    best = {i: min(v, key=lambda f: f["cost"]) for i, v in by.items()}
+    best = {i: min([f for f in v if f["ok_end"]], key=lambda f: f["cost"]) for i, v in by.items()
+            if any(f["ok_end"] for f in v)}
     ids = sorted(best)
     T = d["theta"][ids]
     X = np.array([best[i]["x"] for i in ids])
     amb = sep = 0
     for i, v in by.items():
+        if i not in best:
+            continue
         c0 = best[i]["cost"]
+        v = [f for f in v if f["ok_end"]]
         low = [f for f in v if f["cost"] <= c0 + 1.0]
         far = max(np.abs(np.array(a["x"]) - np.array(b["x"])).max() for a in v for b in v)
         sep += far > 0.2
@@ -34,6 +38,9 @@ for stage, nmeas in (("gaps", 4), ("nominal", 32), ("known", 32)):
     t_fit = np.array([f["time"] for f in fits])
     out[stage] = dict(
         n_knees=len(ids), limit_all=sum(f["status"] == 0 for f in fits), n_all=len(fits),
+        endpoints_not_converged=sum(not f["ok_end"] for f in fits),
+        fits_with_failed_evals=sum(f["n_failed_evals"] > 0 for f in fits),
+        failed_evals_total=sum(f["n_failed_evals"] for f in fits),
         status_all={s: sum(f["status"] == s for f in fits) for s in range(-1, 5)},
         status_retained={s: sum(best[i]["status"] == s for i in ids) for s in range(-1, 5)},
         cost_median=float(np.median([best[i]["cost"] for i in ids])), cost_expected=(nmeas - 8) / 2 if nmeas > 8 else 0.0,
@@ -48,14 +55,15 @@ for stage, nmeas in (("gaps", 4), ("nominal", 32), ("known", 32)):
 sd = noise_sd()
 best = {}
 for f in json.loads((L / "nominal.json").read_text())["fits"]:
-    if f["i"] not in best or f["cost"] < best[f["i"]]["cost"]:
+    if f["ok_end"] and (f["i"] not in best or f["cost"] < best[f["i"]]["cost"]):
         best[f["i"]] = f
-ct = []
+ct, ct_ok = [], []
 for i in sorted(best):
-    y, _ = examine(Knee(params=from_vector(d["theta"][i])))
-    ct.append(0.5 * (((y - Yn[i]) / sd) ** 2).sum())
+    y, ok = examine(Knee(params=from_vector(d["theta"][i])))
+    ct.append(0.5 * (((y - Yn[i]) / sd) ** 2).sum()); ct_ok.append(bool(ok))
 ct = np.array(ct); cl = np.array([best[i]["cost"] for i in sorted(best)])
-out["truth_nominal_cost"] = dict(median=float(np.median(ct)), ratio_median=float(np.median(ct / cl)), n_lower_ls=int((cl < ct).sum()))
+out["truth_nominal_cost"] = dict(median=float(np.median(ct)), ratio_median=float(np.median(ct / cl)), n_lower_ls=int((cl < ct).sum()),
+                                 n_converged=int(sum(ct_ok)))
 ho = np.load(L / "heldout.npz")
 names = list(ho["h_names"])
 kinds = {"AP": [i for i, n in enumerate(names) if n.split("@")[0] in ("ant", "post") or n.endswith(":ap@45")],

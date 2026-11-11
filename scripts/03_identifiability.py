@@ -22,6 +22,7 @@ DATA = ROOT / "results" / "data"
 OUT = ROOT / "results" / "identifiability"
 N_KNEES = 500
 H = float(sys.argv[1]) if len(sys.argv) > 1 else 0.02     # central-difference step (normalized)
+CLIP = 0.02   # evaluation points are clipped to [CLIP, 1 - CLIP] for every step, so step checks share their centers
 N_USE = int(sys.argv[2]) if len(sys.argv) > 2 else N_KNEES
 
 
@@ -36,7 +37,7 @@ def jac_job(args: tuple) -> tuple[np.ndarray, bool]:
             t = theta.copy()
             t[j] = t[j] + s * H
             y, o = examine(Knee(params=from_vector(t), attach_offsets=offsets))
-            ok &= o
+            ok &= bool(o) and bool(np.all(np.isfinite(y)))
             cols.append(y)
         J[:, j] = (cols[0] - cols[1]) / (2 * H)
     return J, ok
@@ -55,11 +56,17 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     d = np.load(DATA / "test_nominal.npz")
     sel = np.where(d["ok"])[0][:N_USE]
-    # keep the interior of the prior so the central differences stay inside it
-    theta = np.clip(d["theta"][sel], H, 1 - H)
+    # keep the interior of the prior so the central differences stay inside it (same centers for every step)
+    theta = np.clip(d["theta"][sel], CLIP, 1 - CLIP)
+    n_clipped = int((theta != d["theta"][sel]).any(1).sum())
     with Pool(4) as pool:
         r = pool.map(jac_job, [(theta[i], d["offsets"][k]) for i, k in enumerate(sel)])
-    Js = np.array([a for a, _ in r])
+    ok = np.array([o for _, o in r])
+    # a matrix with any failed perturbation solve is rejected as a whole (never patched)
+    failed = sel[~ok].tolist()
+    sel = sel[ok]
+    Js = np.array([a for a, o in r if o])
+    print(f"{ok.sum()} of {ok.size} sensitivity matrices valid; rejected knees {failed}; clipped centers {n_clipped}", flush=True)
     summary = {}
     for name in SUBSETS:
         idx = subset_index(name)
@@ -74,7 +81,9 @@ def main():
                              eig_median=np.median(eig, 0).tolist())
         print(f"{name:12s}", np.round(summary[name]["ident_median"], 2), flush=True)
     name = "summary.json" if (H == 0.02 and N_USE == N_KNEES) else f"summary_h{H:g}_n{N_USE}.json"
-    (OUT / name).write_text(json.dumps(dict(params=PARAM_NAMES, n_knees=int(sel.size), step=H, subsets=summary), indent=1))
+    (OUT / name).write_text(json.dumps(dict(params=PARAM_NAMES, n_knees=int(sel.size), step=H, knees=sel.tolist(),
+                                            n_baseline=int(ok.size), rejected_knees=failed, n_clipped=n_clipped,
+                                            subsets=summary), indent=1))
     np.save(OUT / name.replace(".json", "_J.npy"), Js)
 
 

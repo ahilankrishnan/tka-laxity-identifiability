@@ -378,7 +378,7 @@ def figS2() -> None:
     ax = axs[0, 2]
     band(ax, "gapM", HUE["gapM"], "medial"); band(ax, "gapL", HUE["gapL"], "lateral")
     ax.set_xlabel(r"flexion $\alpha$ [$^\circ$]"); ax.set_ylabel(r"gap $g$ [mm]")
-    ax.set_xlim(0, 90); ax.set_xticks([0, 30, 60, 90]); ax.set_ylim(0, 8); ax.set_yticks([0, 2, 4, 6, 8])
+    ax.set_xlim(0, 90); ax.set_xticks([0, 30, 60, 90]); ax.set_ylim(-0.5, 8); ax.set_yticks([0, 2, 4, 6, 8])   # small negative gaps are foundation overlap
     ax.legend(loc="upper left"); ax.set_title("gap, 100 N distraction", fontsize=12); letter(ax, "c")
     specs = [(("ant", "post"), "AP", r"translation $\Delta u_\mathrm{AP}$ [mm]", (-16, 16), [-16, -8, 0, 8, 16], "AP laxity, 100 N", "d"),
              (("var", "val"), "VV", r"rotation $\Delta\beta$ [$^\circ$]", (-16, 16), [-16, -8, 0, 8, 16], "VV laxity, 10 N m", "e"),
