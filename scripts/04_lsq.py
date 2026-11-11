@@ -128,10 +128,15 @@ def hjob(args):
 
 
 def heldout_stage(d, sel, nproc):
+    bests = {st: best_fits(st) for st in ("nominal", "gaps", "known")}
+    dropped = [int(i) for i in sel if not all(int(i) in b for b in bests.values())]
+    sel = np.array([i for i in sel if int(i) not in dropped])
+    if dropped:
+        print("knees without a converged endpoint in some stage (no held-out predictions):", dropped, flush=True)
     out = dict(sel=sel, h_true=d["h"][sel], ok_true=d["ok_h"][sel], h_names=d["h_names"], theta_true=d["theta"][sel])
     with Pool(nproc) as pool:
         for stage, known in (("nominal", False), ("gaps", False), ("known", True)):
-            b = best_fits(stage)
+            b = bests[stage]
             th = np.array([b[int(i)]["x"] for i in sel])
             offs = [d["offsets"][i] if known else None for i in sel]
             r = pool.map(hjob, list(zip(th, offs)))

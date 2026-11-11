@@ -257,8 +257,19 @@ class Knee:
             elif dl > PATH_STEP_MIN:
                 dlam = dl / 2.0
             else:
-                return q, False
-        return q, True
+                return q, False      # the branch cannot be followed continuously (limit point or no convergence)
+        load_end = base + list(load)
+        return q, self.is_stable(q, theta, load_end)
+
+    def is_stable(self, q: np.ndarray, theta: float, load: Load) -> bool:
+        """Static stability of an equilibrium: every eigenvalue of dQ/dq has a negative real part."""
+        Q0 = self.generalized_forces(q, theta, load)
+        J = np.empty((5, 5))
+        for j in range(5):
+            qp = q.copy()
+            qp[j] += FD_STEP
+            J[:, j] = (self.generalized_forces(qp, theta, load) - Q0) / FD_STEP
+        return bool(np.max(np.linalg.eigvals(J).real) < 0.0)
 
     @staticmethod
     def _newton(res: Callable[[np.ndarray], np.ndarray], x: np.ndarray, smax: np.ndarray,
