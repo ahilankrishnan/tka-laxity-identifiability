@@ -3,17 +3,22 @@
 Usage: python scripts/10_compare_runs.py RESULTS_A RESULTS_B [--tol 1e-6]
 
 Every numeric array in every .npz/.npy file and every number in every .json file is compared.
-Differences above --tol are listed; differences above 0.05 (mm, deg, or normalized units) are flagged as
+Differences above --tol are listed; differences above BRANCH_TOL (mm, deg, or normalized units) are flagged as
 possible equilibrium-branch changes.  Exit status 1 if any difference exceeds --tol.
 """
 import sys
 import json
 import argparse
 from pathlib import Path
+from typing import Any, Iterator
 import numpy as np
 
+BRANCH_TOL = 0.05   # mm, deg, or normalized units: a larger difference suggests a different equilibrium branch
+SKIP_JSON = ("time", "time_s", "time_fit_median_s", "time_knee_median_s")   # timings differ between computers
 
-def flat_json(x, key=""):
+
+def flat_json(x: Any, key: str = "") -> Iterator[tuple[str, Any]]:
+    """(dotted key, leaf value) pairs of a nested JSON object."""
     if isinstance(x, dict):
         for k, v in x.items():
             yield from flat_json(v, f"{key}.{k}" if key else str(k))
@@ -26,14 +31,12 @@ def flat_json(x, key=""):
         yield key, x
 
 
-SKIP_JSON = ("time", "time_s", "time_fit_median_s", "time_knee_median_s")
-
-
-def main():
+def main() -> None:
+    """Compare the result directories given on the command line; exit status 1 on any difference."""
     ap = argparse.ArgumentParser()
     ap.add_argument("a"); ap.add_argument("b"); ap.add_argument("--tol", type=float, default=1e-6)
-    a, b = Path(ap.parse_args().a), Path(ap.parse_args().b)
-    tol = ap.parse_args().tol
+    args = ap.parse_args()
+    a, b, tol = Path(args.a), Path(args.b), args.tol
     worst, bad, branch = 0.0, 0, 0
     files = sorted(p.relative_to(a) for p in a.rglob("*") if p.suffix in (".npz", ".npy", ".json"))
     for rel in files:
@@ -69,11 +72,11 @@ def main():
             worst = max(worst, m)
             if m > tol:
                 bad += 1
-                nb = int((d > 0.05).sum()); branch += nb
+                nb = int((d > BRANCH_TOL).sum()); branch += nb
                 where = np.unravel_index(int(np.nanargmax(d)), d.shape) if d.ndim else ()
-                print(f"{rel}:{k}: max diff {m:.3g} at {where}" + (f"  ({nb} entries > 0.05)" if nb else ""))
+                print(f"{rel}:{k}: max diff {m:.3g} at {where}" + (f"  ({nb} entries > {BRANCH_TOL})" if nb else ""))
     print(f"\n{len(files)} files compared; largest difference {worst:.3g}; "
-          f"{bad} items above tol {tol:g}; {branch} entries above 0.05")
+          f"{bad} items above tol {tol:g}; {branch} entries above {BRANCH_TOL}")
     sys.exit(1 if bad else 0)
 
 

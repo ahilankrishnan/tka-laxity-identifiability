@@ -32,16 +32,15 @@ FD_STEP = 1e-6        # forward-difference step for the Jacobian, mm or rad
 MOMENT_SCALE = 25.0   # mm; divides moments so that force and moment residuals have similar size
 SMOOTH_SQ = 1e-4      # mm^2; squared width of the smoothed positive part in the contact law (0.01 mm)
 STEP_MAX = np.array([2.0, 2.0, 1.0, 0.05, 0.1])  # Newton step limits (mm, mm, mm, rad, rad)
-# Every load is applied quasi-statically in INCREMENTS[0] equal increments; if any increment fails to
-# converge, the whole solve is repeated with the next, finer schedule.  A fixed loading path makes the
-# selected equilibrium branch independent of how far a single Newton solve can jump.
+# Seating at full extension and the gap (distraction) solves apply their load in INCREMENTS[0] equal
+# increments; if any increment fails to converge, the whole solve is repeated with the next, finer schedule.
 INCREMENTS = (5, 10, 20, 40)
-# Test loads are applied by adaptive continuation from the seated equilibrium (see Knee.solve_path): a load
-# increment is accepted only if it converges and moves no coordinate by more than PATH_DQ, otherwise it is
-# halved.  The solution thus follows the equilibrium branch continuously from the seated pose.
+# Flexion of the seated knee and every test load use adaptive continuation (see Knee._continue): an increment
+# is accepted only if it converges and moves no coordinate by more than PATH_DQ, otherwise it is halved.  The
+# solution thus follows one equilibrium branch continuously, independent of how far a Newton step could jump.
 PATH_DQ = np.array([1.0, 1.0, 1.0, 0.03, 0.03])   # mm, mm, mm, rad, rad per accepted increment
 PATH_STEP0 = 0.2          # initial and largest load-factor increment
-PATH_STEP_MIN = 1.0 / 4096
+PATH_STEP_MIN = 1.0 / 4096   # smallest increment; below it the branch counts as not followable
 
 # Load = list of (force, point of application, moment) triples, each a 3-vector in the tibial frame.
 Load = Optional[Sequence[tuple]]
@@ -78,7 +77,7 @@ Q_REF = np.r_[T_REF, 0.0, 0.0]
 
 # Ligament bundles: femoral origin (femoral frame) and tibial insertion (tibial frame), mm.
 BUNDLES = {
-    #  name     group   femoral origin            tibial insertion
+    # name      group   femoral origin            tibial insertion
     "aMCL": ("MCL", (4.0, 40.0, 4.0), (12.0, 32.0, -60.0)),
     "iMCL": ("MCL", (0.0, 41.0, 4.0), (2.0, 33.0, -57.0)),
     "pMCL": ("MCL", (-6.0, 40.0, 8.0), (-20.0, 33.0, -20.0)),
@@ -93,6 +92,8 @@ BUNDLES = {
 # Bundles with the tibial insertion expressed in the femoral frame of the reference pose (for figures/tables).
 BUNDLES_REF = {n: (g, pf, tuple(np.add(pt, T_REF))) for n, (g, pf, pt) in BUNDLES.items()}
 
+# Nominal ligament parameters (stiffness N per unit strain, reference strain), inside the prior ranges of
+# sampling.PRIOR; used for the forward checks (02_verify_forward.py) and as the default Knee.
 NOMINAL = dict(k_MCL=2750.0, eps_MCL=0.04, k_LCL=2000.0, eps_LCL=0.04,
                k_PCL=4500.0, eps_PCL=0.0, k_CAP=1500.0, eps_CAP=0.0)
 
@@ -156,7 +157,7 @@ class Knee:
         return R, t, Rf
 
     # ------------------------------------------------------------ elements
-    def ligament_forces(self, R: np.ndarray, t: np.ndarray):
+    def ligament_forces(self, R: np.ndarray, t: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """Tibial insertion points, force vectors on the tibia, force magnitudes, and strains of all bundles."""
         P = self.pt @ R.T + t
         d = self.pf - P
@@ -177,7 +178,7 @@ class Knee:
         n = np.c_[dr / s * G[:, 0] / rho, dy / s, dr / s * G[:, 2] / rho]
         return dist, n
 
-    def contact_forces(self, R: np.ndarray, t: np.ndarray):
+    def contact_forces(self, R: np.ndarray, t: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Elastic-foundation contact: grid points, force vectors on the tibia, and signed distances."""
         G = self.grid @ R.T + t
         dist, n = self.signed_distance(G)
@@ -216,6 +217,7 @@ class Knee:
             ld = None if load is None else [(lam * np.asarray(f), p, lam * np.asarray(m)) for f, p, m in load]
 
             def res(x: np.ndarray) -> np.ndarray:
+                """Residual of the free coordinates, with the fixed ones held at q."""
                 qq = q.copy()
                 qq[free] = x
                 return self.generalized_forces(qq, theta, ld)[free]
@@ -267,6 +269,7 @@ class Knee:
         base = list(base or [])
 
         def residual(lt: float) -> Callable[[np.ndarray], np.ndarray]:
+            """Residual function at load factor lt."""
             ld = base + [(lt * np.asarray(f), p, lt * np.asarray(m)) for f, p, m in load]
             return lambda x: self.generalized_forces(x, theta, ld)
 
@@ -280,6 +283,7 @@ class Knee:
         Flexion moves from theta0 to theta1 by adaptive continuation (see `_continue`); the end state must
         also be statically stable."""
         def residual(lt: float) -> Callable[[np.ndarray], np.ndarray]:
+            """Residual function at flexion theta0 + lt (theta1 - theta0)."""
             th = theta0 + lt * (theta1 - theta0)
             return lambda x: self.generalized_forces(x, th, load)
 
@@ -288,13 +292,20 @@ class Knee:
 
     def is_stable(self, q: np.ndarray, theta: float, load: Load) -> bool:
         """Static stability of an equilibrium: every eigenvalue of dQ/dq has a negative real part."""
-        Q0 = self.generalized_forces(q, theta, load)
-        J = np.empty((5, 5))
-        for j in range(5):
-            qp = q.copy()
-            qp[j] += FD_STEP
-            J[:, j] = (self.generalized_forces(qp, theta, load) - Q0) / FD_STEP
+        res = lambda x: self.generalized_forces(x, theta, load)
+        J = self._fd_jacobian(res, q, res(q))
         return bool(np.max(np.linalg.eigvals(J).real) < 0.0)
+
+    @staticmethod
+    def _fd_jacobian(res: Callable[[np.ndarray], np.ndarray], x: np.ndarray, r: np.ndarray) -> np.ndarray:
+        """Forward-difference Jacobian of res at x, where r = res(x)."""
+        n = x.size
+        J = np.empty((r.size, n))
+        for j in range(n):
+            xp = x.copy()
+            xp[j] += FD_STEP
+            J[:, j] = (res(xp) - r) / FD_STEP
+        return J
 
     @staticmethod
     def _newton(res: Callable[[np.ndarray], np.ndarray], x: np.ndarray, smax: np.ndarray,
@@ -302,15 +313,10 @@ class Knee:
         """Newton iteration with forward-difference Jacobian and per-coordinate step limits."""
         x = np.array(x, float)
         r = res(x)
-        n = x.size
         for _ in range(maxit):
             if np.max(np.abs(r)) < NEWTON_TOL:
                 break
-            J = np.empty((n, n))
-            for j in range(n):
-                xp = x.copy()
-                xp[j] += FD_STEP
-                J[:, j] = (res(xp) - r) / FD_STEP
+            J = Knee._fd_jacobian(res, x, r)
             try:
                 dx = -np.linalg.solve(J, r)
             except np.linalg.LinAlgError:

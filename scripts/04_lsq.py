@@ -21,13 +21,19 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from knee.model import Knee                                   # noqa: E402
 from knee.sampling import from_vector                         # noqa: E402
-from knee.protocols import examine, heldout, neutral, DISTRACTION, JOINT_LINE_Z  # noqa: E402
+from knee.protocols import examine, heldout, neutral, gap_test  # noqa: E402
 from knee.subsets import noise_sd, test_noise, subset_index   # noqa: E402
+from knee.analysis import best_fits                           # noqa: E402
 
 DATA = ROOT / "results" / "data"
 OUT = ROOT / "results" / "lsq"
-N_LS = 50
-MAX_NFEV = 500
+N_LS = 50            # test knees fitted
+MAX_NFEV = 500       # residual-evaluation limit per fit
+DIFF_STEP = 1e-2     # relative finite-difference step of the least-squares Jacobian
+X_SCALE = 0.2        # characteristic scale of the normalized parameters for the trust region
+START_SEED = 7       # random starts
+START_RANGE = (0.1, 0.9)   # random starts are drawn inside the prior box, away from its bounds
+N_RANDOM_STARTS = 2
 GAP_IDX = subset_index("Gaps 0/90")
 
 
@@ -38,11 +44,9 @@ def gaps_exam(knee: Knee) -> tuple[np.ndarray, bool]:
         th = np.radians(f)
         q, ok = neutral(knee, th, q, thp)
         thp = th
-        dist = [([0, 0, -DISTRACTION], [0, y_, JOINT_LINE_Z], [0, 0, 0]) for y_ in (-22.0, 22.0)]
-        qs = q.copy(); qs[2] -= 0.5
-        qg, okg = knee.solve_robust(th, dist, q0=qs, fixed=[0, 1, 4])
+        g, okg = gap_test(knee, th, q)
         allok &= bool(ok and okg)
-        vals += list(knee.gaps(qg, th))
+        vals += list(g)
     return np.array(vals), allok
 
 
@@ -58,13 +62,14 @@ def fit_job(args: tuple) -> dict:
         sim = lambda x: examine(Knee(params=from_vector(x), attach_offsets=offs))
     n_fail = [0]
 
-    def f(x):
+    def f(x: np.ndarray) -> np.ndarray:
+        """Simulated outputs at x; failed evaluations are counted."""
         y, ok = sim(x)
         n_fail[0] += not ok          # counted and reported; the endpoint itself must converge (below)
         return y
 
-    r = least_squares(lambda x: (f(x) - y_obs) / sd, x0, bounds=(0, 1), diff_step=1e-2,
-                      max_nfev=MAX_NFEV, x_scale=0.2)
+    r = least_squares(lambda x: (f(x) - y_obs) / sd, x0, bounds=(0, 1), diff_step=DIFF_STEP,
+                      max_nfev=MAX_NFEV, x_scale=X_SCALE)
     y_end, ok_end = sim(r.x)          # re-evaluate the endpoint: its cost and convergence decide retention
     cost_end = float(0.5 * (((y_end - y_obs) / sd) ** 2).sum())
     return dict(i=i, tag=tag, x=r.x.tolist(), x0=list(map(float, x0)), cost=cost_end, cost_optimizer=float(r.cost),
@@ -72,18 +77,19 @@ def fit_job(args: tuple) -> dict:
                 status=int(r.status), nfev=int(r.nfev), njev=int(r.njev), time=time.time() - t0)
 
 
-def starts(sel):
-    """Prior center and two random starts in [0.1, 0.9]^8 per knee."""
-    rng = np.random.default_rng(7)
+def starts(sel: np.ndarray) -> list[tuple[int, np.ndarray, str]]:
+    """Prior center and N_RANDOM_STARTS random starts in START_RANGE^8 per knee."""
+    rng = np.random.default_rng(START_SEED)
     out = []
     for i in sel:
         out.append((int(i), np.full(8, 0.5), "center"))
-        for r_ in range(2):
-            out.append((int(i), rng.uniform(0.1, 0.9, 8), f"random{r_}"))
+        for r_ in range(N_RANDOM_STARTS):
+            out.append((int(i), rng.uniform(*START_RANGE, 8), f"random{r_}"))
     return out
 
 
-def load():
+def load() -> tuple[dict, np.ndarray]:
+    """Test-knee data and the first N_LS knees whose examination and held-out outputs converged."""
     z = np.load(DATA / "test_nominal.npz")
     d = {k: z[k] for k in z.files}
     sel = np.where(d["ok"] & d["ok_h"])[0][:N_LS]
@@ -91,6 +97,7 @@ def load():
 
 
 def main(stage: str, nproc: int) -> None:
+    """Run the fits of one stage (or the held-out predictions) on nproc processes."""
     OUT.mkdir(parents=True, exist_ok=True)
     d, sel = load()
     if stage == "heldout":
@@ -111,25 +118,16 @@ def main(stage: str, nproc: int) -> None:
     (OUT / f"{stage}.json").write_text(json.dumps(dict(knees=sel.tolist(), max_nfev=MAX_NFEV, fits=res), indent=1))
 
 
-def best_fits(stage):
-    """Lowest re-evaluated fit error per knee among starts whose endpoint converged."""
-    best = {}
-    for f in json.loads((OUT / f"{stage}.json").read_text())["fits"]:
-        if not f["ok_end"]:
-            continue
-        if f["i"] not in best or f["cost"] < best[f["i"]]["cost"]:
-            best[f["i"]] = f
-    return best
-
-
-def hjob(args):
+def hjob(args: tuple) -> tuple[np.ndarray, bool]:
+    """Held-out outputs and convergence flag for one parameter vector and attachment offsets."""
     theta, offs = args
     _, h, ok = heldout(Knee(params=from_vector(np.clip(theta, 0, 1)), attach_offsets=offs))
     return h, ok
 
 
-def heldout_stage(d, sel, nproc):
-    bests = {st: best_fits(st) for st in ("nominal", "gaps", "known")}
+def heldout_stage(d: dict, sel: np.ndarray, nproc: int) -> None:
+    """Held-out predictions of the best fit of each stage, the prior center, and the true parameters."""
+    bests = {st: best_fits(json.loads((OUT / f"{st}.json").read_text())["fits"]) for st in ("nominal", "gaps", "known")}
     dropped = [int(i) for i in sel if not all(int(i) in b for b in bests.values())]
     sel = np.array([i for i in sel if int(i) not in dropped])
     if dropped:

@@ -1,5 +1,5 @@
-"""Figure style (peanu's guide): fixed inch grid of square panels, Times text with Computer Modern math (as in the manuscript), boxed axes,
-inward ticks, hue = quantity, shade = case, solid lines plus one dotted style."""
+"""Figure style: fixed inch grid of square panels, Times text with Computer Modern math (as in the manuscript),
+boxed axes, inward ticks, and the manuscript-wide color system below."""
 from __future__ import annotations
 
 import numpy as np
@@ -10,8 +10,7 @@ from matplotlib.colors import to_rgb, ListedColormap, BoundaryNorm
 
 WIDTH = 6.5
 LEFT, GAP, RIGHT, BELOW, ABOVE = 0.52, 0.04, 0.10, 0.40, 0.34   # inches; tight grid, labels hug their axes
-LW_DATA, LW_PROFILE = 1.6, 1.2   # moderate line widths
-DOTTED = (0, (1, 0.9))   # dot 1, gap 0.9 line widths
+LW_DATA = 1.6   # data line width
 
 # Manuscript-wide color system:
 #   hue = ligament identity (MCL, LCL, PCL, capsule; medial/lateral gaps take the MCL/LCL hues),
@@ -41,7 +40,10 @@ def shade(base: str, s: float) -> tuple:
 def setup() -> None:
     """Global matplotlib style for all manuscript figures."""
     plt.rcParams.update({
-        "text.usetex": True, "text.latex.preamble": r"\usepackage[T1]{fontenc}\usepackage{amsmath}\renewcommand{\rmdefault}{ptm}\renewcommand{\sfdefault}{phv}", "font.family": "serif", "font.serif": ["Computer Modern Roman"], "mathtext.fontset": "cm",
+        "text.usetex": True,
+        "text.latex.preamble": (r"\usepackage[T1]{fontenc}\usepackage{amsmath}"
+                                r"\renewcommand{\rmdefault}{ptm}\renewcommand{\sfdefault}{phv}"),
+        "font.family": "serif", "font.serif": ["Computer Modern Roman"], "mathtext.fontset": "cm",
         "axes.formatter.use_mathtext": True, "axes.unicode_minus": False,
         "font.size": 12, "axes.labelsize": 12, "axes.titlesize": 13.9, "axes.titlepad": 4, "axes.labelpad": 2,
         "legend.fontsize": 11, "xtick.labelsize": 12, "ytick.labelsize": 12,
@@ -58,11 +60,12 @@ def setup() -> None:
 
 
 def grid(nrows: int, ncols: int, size: float | None = None, extra_below: float = 0.0, extra_left: float = 0.0,
-         extra_right: float = 0.0, colsep: float | None = None, rowsep: float | None = None):
+         extra_right: float = 0.0, colsep: float | None = None,
+         rowsep: float | None = None) -> tuple[plt.Figure, np.ndarray, float]:
     """Square panels on one grid, packed tightly so that panels of a figure read as one group.
 
-    colsep: horizontal distance (in) between neighbouring panels, default LEFT + GAP (room for y labels);
-    rowsep: vertical distance (in) between neighbouring rows, default BELOW + ABOVE + extra_below.
+    colsep: horizontal distance (in) between neighboring panels, default LEFT + GAP (room for y labels);
+    rowsep: vertical distance (in) between neighboring rows, default BELOW + ABOVE + extra_below.
     Returns fig, axes (nrows x ncols), panel size (in)."""
     colsep = LEFT + GAP if colsep is None else colsep
     rowsep = BELOW + ABOVE + extra_below if rowsep is None else rowsep
@@ -80,14 +83,14 @@ def grid(nrows: int, ncols: int, size: float | None = None, extra_below: float =
     return fig, axs, size
 
 
-def letter(ax, s: str) -> None:
+def letter(ax: plt.Axes, s: str) -> None:
     """Bold uppercase panel letter at the top-left corner of the axes."""
     s = r"\textbf{%s}" % s.upper()
     ax.annotate(s, xy=(0, 1), xycoords="axes fraction", xytext=(-30, 4), textcoords="offset points",
                 fontsize=15, va="bottom", ha="left")
 
 
-def sequential_levels(n: int = 10, vmin: float = 0.0, vmax: float = 1.0):
+def sequential_levels(n: int = 10, vmin: float = 0.0, vmax: float = 1.0) -> tuple[ListedColormap, BoundaryNorm, np.ndarray]:
     """White-to-slate color map with n discrete levels for heat maps; slate is a muted blue-gray
     that differs from every ligament and laxity-test hue."""
     colors = [mix("#FFFFFF", HUE["slate"], f) for f in np.linspace(0.0, 1.0, n)]

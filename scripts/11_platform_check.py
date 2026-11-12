@@ -15,25 +15,22 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from knee.model import Knee                                    # noqa: E402
-from knee.sampling import sample_params, sample_offsets, to_vector  # noqa: E402
+from knee.sampling import knee_from_seed, to_vector, TEST_SEED0  # noqa: E402
 from knee.protocols import examine, heldout                    # noqa: E402
 
-TEST_SEED0 = 100_000
 FLIPPED = [8, 24, 27, 37, 40, 66, 132, 160, 214, 235, 262, 293, 354, 359, 366, 376, 397, 445, 453, 483]
 
 
-def job(i: int):
-    seed = TEST_SEED0 + i
-    rng = np.random.default_rng(seed)
-    p = sample_params(rng, 1)[0]
-    k = Knee(params=p, attach_offsets=sample_offsets(np.random.default_rng(seed + 7_000_000), 1.5))
+def job(i: int) -> tuple[np.ndarray, np.ndarray, bool, np.ndarray, bool]:
+    """Parameters, examination outputs, and held-out outputs (with flags) of test knee i."""
+    k, p = knee_from_seed(TEST_SEED0 + i)
     y, ok = examine(k)
     _, h, okh = heldout(k)
     return to_vector(p), y, ok, h, okh
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Simulate the selected test knees and write results/platform_check.npz."""
     a = sys.argv[1:]
     ids = list(range(int(a[0]), int(a[1]))) + [int(x) for x in a[2:]] if a else list(range(40)) + FLIPPED
     t0 = time.time()
@@ -44,3 +41,7 @@ if __name__ == "__main__":
     (ROOT / "results").mkdir(exist_ok=True)
     np.savez(ROOT / "results" / "platform_check.npz", **out)
     print(f"{len(ids)} knees in {time.time() - t0:.0f} s; converged {out['ok'].sum()} exam, {out['ok_h'].sum()} held-out")
+
+
+if __name__ == "__main__":
+    main()

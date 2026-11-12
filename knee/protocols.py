@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Optional, Sequence
 
 import numpy as np
-from .model import Knee, GROUPS
+from .model import Knee, FEM
 
 FLEX_TRAIN = (0.0, 30.0, 60.0, 90.0)      # flexion angles used for inference, deg
 FLEX_HELDOUT = (15.0, 45.0, 75.0)         # flexion angles withheld from inference, deg
@@ -13,6 +13,7 @@ AP_FORCE = 100.0       # N, applied 5 mm below the joint line (AP_ARM_Z)
 VV_MOMENT = 10.0e3     # N mm
 IE_MOMENT = 3.0e3      # N mm
 DISTRACTION = 100.0    # N per compartment (spreader)
+GAP_START_DROP = 0.5   # mm, the distraction solve starts with the tibia lowered this far below the seated pose
 
 JOINT_LINE_Z = 0.0    # mm, tibial-frame height of the lowest insert points (joint line, tibial origin)
 AP_ARM_Z = -5.0       # mm, height at which the AP force is applied
@@ -35,8 +36,10 @@ COMBINED = {  # held-out combined loads at 45 deg flexion: (load list, reported 
 }
 
 
-def feature_names(flex: Sequence[float] = FLEX_TRAIN,
-                  tests: Sequence[str] = ("ant", "post", "var", "val", "int", "ext", "gapM", "gapL")) -> list[str]:
+EXAM_TESTS = ("ant", "post", "var", "val", "int", "ext", "gapM", "gapL")   # output order at each flexion angle
+
+
+def feature_names(flex: Sequence[float] = FLEX_TRAIN, tests: Sequence[str] = EXAM_TESTS) -> list[str]:
     """Names of the examination outputs, ordered as returned by `examine`."""
     return [f"{t}@{int(f)}" for f in flex for t in tests]
 
@@ -73,11 +76,7 @@ def laxity_at(knee: Knee, flex_deg: float, q_prev: Optional[np.ndarray] = None, 
         out[name] = (q[idx] - q0[idx]) * sc
         allok &= ok
     if with_gaps:
-        dist = [([0, 0, -DISTRACTION], [0, FEMY, JOINT_LINE_Z], [0, 0, 0]) for FEMY in (-22.0, 22.0)]
-        qs = q0.copy()
-        qs[2] -= 0.5
-        q, ok = knee.solve_robust(th, dist, q0=qs, fixed=[0, 1, 4])
-        out["gapM"], out["gapL"] = knee.gaps(q, th)
+        (out["gapM"], out["gapL"]), ok = gap_test(knee, th, q0)
         allok &= ok
     if extra:
         for name, load in extra.items():
@@ -89,10 +88,22 @@ def laxity_at(knee: Knee, flex_deg: float, q_prev: Optional[np.ndarray] = None, 
     return out, q0, allok
 
 
+def gap_test(knee: Knee, theta: float, q0: np.ndarray) -> tuple[np.ndarray, bool]:
+    """Medial and lateral gaps (mm) under DISTRACTION per compartment at flexion theta (rad).
+
+    The spreader loads act below the condyle centers; AP translation and IE rotation are held at the seated
+    pose q0, and the solve starts GAP_START_DROP below it."""
+    dist = [([0, 0, -DISTRACTION], [0, y_c, JOINT_LINE_Z], [0, 0, 0]) for y_c in (FEM["y_lat"], FEM["y_med"])]
+    qs = q0.copy()
+    qs[2] -= GAP_START_DROP
+    q, ok = knee.solve_robust(theta, dist, q0=qs, fixed=[0, 1, 4])
+    return knee.gaps(q, theta), ok
+
+
 def examine(knee: Knee, flex: Sequence[float] = FLEX_TRAIN, tests: Optional[Sequence[str]] = None,
             with_gaps: bool = True) -> tuple[np.ndarray, bool]:
     """Full examination over flexion; returns feature vector (ordered by feature_names) and flag."""
-    tests = tests or ("ant", "post", "var", "val", "int", "ext", "gapM", "gapL")
+    tests = tests or EXAM_TESTS
     vals, allok, q, fp = [], True, None, None
     for f in flex:
         o, q, ok = laxity_at(knee, f, q, with_gaps=with_gaps, flex_prev=fp)
@@ -113,3 +124,10 @@ def heldout(knee: Knee) -> tuple[list[str], np.ndarray, bool]:
             names.append(f"{k_}@{int(f)}")
             vals.append(v)
     return names, np.array(vals), allok
+
+
+def heldout_kinds(names: Sequence[str]) -> dict[str, list[int]]:
+    """Indices of the held-out outputs that are AP translations, VV rotations, and IE rotations."""
+    return {"AP": [i for i, n in enumerate(names) if n.split("@")[0] in ("ant", "post") or n.endswith(":ap@45")],
+            "VV": [i for i, n in enumerate(names) if n.split("@")[0] in ("var", "val") or n.endswith(":vv@45")],
+            "IE": [i for i, n in enumerate(names) if n.split("@")[0] in ("int", "ext") or n.endswith(":ie@45")]}
