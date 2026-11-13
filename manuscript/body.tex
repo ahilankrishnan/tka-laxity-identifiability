@@ -58,7 +58,10 @@ Our primary contribution is therefore a formal identifiability assessment of int
 (A)~Anterior, medial, posterior, and lateral views of the right-knee model in the reference pose at full extension.
 Toroidal condyles of the femoral component articulate with a dished tibial insert, and nine nonlinear bundles represent the medial collateral ligament (MCL), lateral collateral ligament (LCL), posterior cruciate ligament (PCL), and capsule (CAP).
 In the anterior view, the femoral origin $O_\mathrm{F}$ lies midway between the condyles on the flexion axis, and the tibial origin $O_\mathrm{T}$ lies midway between the lowest points of the insert dishes.
-Filled and open circles mark the nominal femoral and tibial attachments of \autoref{tab:bundles}. Bundle prefixes denote anterior (a), intermediate (i), posterior (p), anterolateral (al), posteromedial (pm), and posterolateral (pl). The triad of each view gives the femoral-frame axes, with a dot for an axis toward the viewer and a cross for one away from the viewer. Bones are not modeled.
+Filled and open circles mark the nominal femoral and tibial attachments of \autoref{tab:bundles}.
+Bundle prefixes denote anterior (a), intermediate (i), posterior (p), anterolateral (al), posteromedial (pm), and posterolateral (pl).
+The triad of each view gives the femoral-frame axes, with a dot for an axis toward the viewer and a cross for one away from the viewer.
+Bones are not modeled.
 The virtual laxity examination comprised (1) joint distraction for the medial and lateral gaps and (2) AP, (3) VV, and (4) IE laxity tests, each at \SIlist{0;30;60;90}{\degree} flexion.
 (B)~The current study generated synthetic knees, simulated their virtual laxity examinations with measurement noise, and assessed parameter inference by Fisher analysis and least-squares calibration.
 In the intended surgical use, an instrumented examination would update the model, which would then predict the effect of an adjustment.}
@@ -160,7 +163,10 @@ Each test knee received one random draw of this noise, and the same noisy measur
 
 \begin{table}[H]
 \centering
-\caption{Prior ranges of the ligament parameters. Stiffness is per bundle and per unit strain. Stiffness was sampled log-uniformly and reference strain uniformly. The stiffness ranges include the nominal stiffnesses of a previous computational model of knee arthroplasty~\autocite{amiri2012computational}.}
+\caption{Prior ranges of the ligament parameters.
+Stiffness is per bundle and per unit strain.
+Stiffness was sampled log-uniformly and reference strain uniformly.
+The stiffness ranges include the nominal stiffnesses of a previous computational model of knee arthroplasty~\autocite{amiri2012computational}.}
 \label{tab:prior}
 \begin{tabular}{lcccc}
 \toprule
@@ -209,7 +215,8 @@ To isolate the effect of attachment mismatch, we also repeated the full-examinat
 \subsection{Predictions under held-out load cases}
 
 To test whether calibrated models predict conditions outside the examination, we used the fitted parameters to predict laxity at \SIlist{15;45;75}{\degree} flexion and under three combined loads at \SI{45}{\degree}, none of which entered calibration.
-Each combined load applied two load components at once. These were a varus moment of \SI{10}{\newton\meter} with an internal moment of \SI{3}{\newton\meter}, a valgus moment with an external moment of the same magnitudes, and an anterior force of \SI{100}{\newton} with an internal moment of \SI{3}{\newton\meter}, each with the \SI{50}{\newton} compression.
+Each combined load applied two load components at once.
+These were a varus moment of \SI{10}{\newton\meter} with an internal moment of \SI{3}{\newton\meter}, a valgus moment with an external moment of the same magnitudes, and an anterior force of \SI{100}{\newton} with an internal moment of \SI{3}{\newton\meter}, each with the \SI{50}{\newton} compression.
 The reference values used the true parameters and true attachment sites of each knee without measurement noise.
 Predictions used the same attachment sites as the corresponding fit.
 Parameter error was the root-mean-square error (RMSE) of the normalized parameters, pooled over knees and, for the overall value, over all eight parameters.

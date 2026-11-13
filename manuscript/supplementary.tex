@@ -20,7 +20,8 @@ This asymmetry may reflect the simplified ligament geometry and posterolateral r
 \caption{\textbf{The virtual knee exhibits flexion-dependent kinematics, ligament recruitment, and laxity.}
 (A)~With increasing flexion under \SI{50}{\newton} compression, the tibia of the nominal knee translated anteriorly ($u_\mathrm{AP}$) and rotated internally ($\gamma$), with little varus rotation ($\beta$).
 (B)~The MCL carried most of the neutral ligament force $F$ in extension, whereas the PCL carried most of it in deep flexion.
-(C)~The lateral gap $g$ under \SI{100}{\newton} distraction per compartment exceeded the medial gap. Negative gaps denote overlap of the condyle with the elastic foundation of the insert.
+(C)~The lateral gap $g$ under \SI{100}{\newton} distraction per compartment exceeded the medial gap.
+Negative gaps denote overlap of the condyle with the elastic foundation of the insert.
 (D--F)~AP translation $\Delta u_\mathrm{AP}$ under \SI{100}{\newton}, VV rotation $\Delta\beta$ under \SI{10}{\newton\meter}, and IE rotation $\Delta\gamma$ under \SI{3}{\newton\meter} varied with flexion and between knees.
 Positive values are anterior, varus, and internal.
 In (C--F), lines show the median and bands the 5th to 95th percentiles of the \num{9936} converged characterization knees.
@@ -30,7 +31,9 @@ The nominal knee used the nominal attachment sites and the parameters of \autore
 
 \begin{table}[H]
 \centering
-\caption{Ligament parameters of the nominal knee in \autoref{fig:forward}A,B and of the prior center. The prior center is the log-midpoint of the stiffness range and the midpoint of the reference-strain range in \autoref{tab:prior}. Stiffness is per bundle and per unit strain.}
+\caption{Ligament parameters of the nominal knee in \autoref{fig:forward}A,B and of the prior center.
+The prior center is the log-midpoint of the stiffness range and the midpoint of the reference-strain range in \autoref{tab:prior}.
+Stiffness is per bundle and per unit strain.}
 \label{tab:nominal}
 \begin{tabular}{llcccc}
 \toprule
@@ -48,7 +51,7 @@ Reference strain $\varepsilon_\mathrm{r}$ [\si{\percent}] & nominal knee & 4 & 4
 
 The Jacobian of \autoref{eq:equilibrium} was computed by forward differences, and each Newton step was limited to \SI{2}{\milli\meter} for AP and medial--lateral translation, \SI{1}{\milli\meter} for proximal translation, and \SIlist{0.05;0.1}{\radian} for varus and internal rotation.
 Iterations stopped when the largest residual fell below \SI{1e-4}{\newton}, with moments divided by a length scale of \SI{25}{\milli\meter}, and a solve converged if the residual fell below \SI{0.01}{\newton}.
-The compression at full extension and the gap distraction were applied in 5 equal increments, refined to 10, 20, and 40 increments if any increment failed to converge.
+The compression at full extension and the gap distraction were applied in five equal increments, refined to 10, 20, and 40 increments if any increment failed to converge.
 Every test load and every change of flexion angle was applied by adaptive continuation.
 Starting from a load-factor increment of 0.2, an increment was accepted only if the solve converged and no coordinate moved by more than \SI{1}{\milli\meter} or \SI{0.03}{\radian}; otherwise the increment was halved, down to a minimum of $1/4096$.
 An accepted increment doubled the next one, up to 0.2.
@@ -77,7 +80,8 @@ The per-knee medians ranked the estimators as the pooled errors did.
 
 \begin{table}[H]
 \centering
-\caption{Median (interquartile range) across the 50 knees of the per-knee RMSE of the held-out predictions, each over nine outputs. Values for the gaps-only fits are given to one decimal because these fits are not unique, and they differed by up to 0.08 between the two computers.}
+\caption{Median (interquartile range) across the 50 knees of the per-knee RMSE of the held-out predictions, each over nine outputs.
+Values for the gaps-only fits are given to one decimal because these fits are not unique, and they differed by up to 0.08 between the two computers.}
 \label{tab:heldout_iqr}
 \begin{tabular}{lccc}
 \toprule
@@ -94,8 +98,16 @@ true parameters, nominal attachment sites & 0.87 (0.54--1.46) & 0.66 (0.43--1.01
 
 \subsection*{Stopping criteria of the least-squares fits}
 
-SciPy reports why each fit stopped: 0 for the evaluation budget, 1 for the gradient tolerance, 2 for the fit-error tolerance, 3 for the step tolerance, and 4 for both the fit-error and step tolerances. The 150 full-examination fits with nominal attachment sites ended with status 2, 3, and 4 in 5, 141, and 4 fits, after at most 69 evaluations. The fits with true attachment sites ended with status 2, 3, and 4 in 26, 122, and 2 fits, after at most 104 evaluations. The gaps-only fits ended with status 0, 1, 2, 3, and 4 in 2, 17, 8, 121, and 2 fits; the two fits that reached the budget of 500 evaluations were not the lowest-error fits of their knees. A stopping criterion establishes numerical termination, not global optimality.
+SciPy reports why each fit stopped: 0 for the evaluation budget, 1 for the gradient tolerance, 2 for the fit-error tolerance, 3 for the step tolerance, and 4 for both the fit-error and step tolerances.
+The 150 full-examination fits with nominal attachment sites ended with status 2, 3, and 4 in 5, 141, and 4 fits, after at most 69 evaluations.
+The fits with true attachment sites ended with status 2, 3, and 4 in 26, 122, and 2 fits, after at most 104 evaluations.
+The gaps-only fits ended with status 0, 1, 2, 3, and 4 in 2, 17, 8, 121, and 2 fits; the two fits that reached the budget of 500 evaluations were not the lowest-error fits of their knees.
+A stopping criterion establishes numerical termination, not global optimality.
 
 \subsection*{Reproducibility on two computers}
 
-We ran the complete study on Linux (Python 3.13) and on Windows (Python 3.14), both with NumPy 2.5.3 and SciPy 1.18.1, and reported the Linux results. The two runs gave the same converged knees, and their measurements agreed within \SI{2e-6}{\milli\meter} or \SI{2e-6}{\degree}. The identifiability indices and correlations agreed within \num{1e-5}. Every reported result of the full-examination fits and of the reference estimators agreed to the precision given, although the endpoints of individual fits differed by up to 0.02 in normalized parameters and the counts of stopping reasons differed slightly. The gaps-only fits differed more, by up to 0.47 in a normalized parameter, because their fit error is nearly flat along directions the four gaps do not constrain.
+We ran the complete study on Linux (Python 3.13) and on Windows (Python 3.14), both with NumPy 2.5.3 and SciPy 1.18.1, and reported the Linux results.
+The two runs gave the same converged knees, and their measurements agreed within \SI{2e-6}{\milli\meter} or \SI{2e-6}{\degree}.
+The identifiability indices and correlations agreed within \num{1e-5}.
+Every reported result of the full-examination fits and of the reference estimators agreed to the precision given, although the endpoints of individual fits differed by up to 0.02 in normalized parameters and the counts of stopping reasons differed slightly.
+The gaps-only fits differed more, by up to 0.47 in a normalized parameter, because their fit error is nearly flat along directions the four gaps do not constrain.
