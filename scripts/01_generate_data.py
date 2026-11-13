@@ -12,13 +12,13 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from knee.model import Knee, INSERT                       # noqa: E402
-from knee.sampling import sample_params, sample_offsets, to_vector, PARAM_NAMES  # noqa: E402
-from knee.protocols import examine, heldout, feature_names  # noqa: E402
+from knee.model import Knee                                                  # noqa: E402
+from knee.sampling import knee_from_seed, to_vector, PARAM_NAMES, TEST_SEED0  # noqa: E402
+from knee.protocols import examine, heldout, feature_names                  # noqa: E402
 
 OUT = ROOT / "results" / "data"
-N_TRAIN, N_TEST = int(sys.argv[1]) if len(sys.argv) > 1 else 10000, int(sys.argv[2]) if len(sys.argv) > 2 else 500
-TEST_SEED0 = 100_000
+N_TRAIN = int(sys.argv[1]) if len(sys.argv) > 1 else 10000
+N_TEST = int(sys.argv[2]) if len(sys.argv) > 2 else 500
 NPROC = 4
 
 MISMATCH = {
@@ -26,17 +26,9 @@ MISMATCH = {
 }
 
 
-def _knee(seed: int, attach_sd: float = 1.5, **kw) -> tuple[Knee, dict]:
-    """Virtual knee with parameters and attachment offsets drawn from independent seeds."""
-    rng = np.random.default_rng(seed)
-    p = sample_params(rng, 1)[0]
-    off_rng = np.random.default_rng(seed + 7_000_000)      # offsets drawn independently of params
-    return Knee(params=p, attach_offsets=sample_offsets(off_rng, attach_sd), **kw), p
-
-
-def train_job(seed: int):
-    """Full examination of one training knee."""
-    k, p = _knee(seed)
+def train_job(seed: int) -> tuple[np.ndarray, np.ndarray, bool]:
+    """Full examination of one characterization knee."""
+    k, p = knee_from_seed(seed)
     y, ok = examine(k)
     return to_vector(p), y, ok
 
@@ -45,7 +37,7 @@ def test_job(args: tuple) -> dict:
     """Full examination of one test knee under a mismatch case (plus held-out loads for nominal)."""
     seed, case = args
     kw = dict(MISMATCH[case])
-    k, p = _knee(seed, **kw)
+    k, p = knee_from_seed(seed, **kw)
     y, ok = examine(k)
     res = dict(theta=to_vector(p), y=y, ok=ok)
     if case == "nominal":
@@ -54,7 +46,8 @@ def test_job(args: tuple) -> dict:
     return res
 
 
-def main():
+def main() -> None:
+    """Simulate the test knees (with held-out outputs) and the characterization knees."""
     OUT.mkdir(parents=True, exist_ok=True)
     t0 = time.time()
     with Pool(NPROC) as pool:
@@ -73,6 +66,7 @@ def main():
         th = np.array([a for a, _, _ in r]); Y = np.array([b for _, b, _ in r]); ok = np.array([c for *_, c in r])
         np.savez(OUT / "train.npz", theta=th, y=Y, ok=ok, features=feature_names(), params=PARAM_NAMES)
         print(f"train: {ok.sum()}/{ok.size} converged, {time.time() - t0:.0f} s", flush=True)
+
 
 if __name__ == "__main__":
     main()

@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Optional
 
 import numpy as np
-from .model import GROUPS, BUNDLES
+from .model import GROUPS, BUNDLES, Knee
 
 # Uniform priors on log10 stiffness (N per unit strain, per bundle) and reference strain.
 PRIOR = {
@@ -18,6 +18,11 @@ PARAM_NAMES = [f"{p}_{g}" for g in GROUPS for p in ("k", "eps")]
 # Measurement noise (1 SD): navigation-grade tracking accuracy.
 NOISE = {"mm": 0.5, "deg": 0.5}
 ATTACH_SD = 1.5   # mm, per coordinate, nuisance attachment variability
+
+# Seeds: characterization knee i uses seed i, test knee i uses TEST_SEED0 + i; the attachment offsets of a
+# knee use seed + OFFSET_SEED_SHIFT, so that they are drawn independently of its parameters.
+TEST_SEED0 = 100_000
+OFFSET_SEED_SHIFT = 7_000_000
 
 
 def sample_params(rng: np.random.Generator, n: int) -> list[dict]:
@@ -54,3 +59,10 @@ def from_vector(v: np.ndarray) -> dict:
         lo, hi = PRIOR[name]
         p[name] = 10 ** (np.log10(lo) + x * (np.log10(hi) - np.log10(lo))) if name.startswith("k_") else lo + x * (hi - lo)
     return p
+
+
+def knee_from_seed(seed: int, attach_sd: float = ATTACH_SD, **kw) -> tuple[Knee, dict]:
+    """Virtual knee with parameters and attachment offsets drawn from independent seeds (see TEST_SEED0)."""
+    p = sample_params(np.random.default_rng(seed), 1)[0]
+    offsets = sample_offsets(np.random.default_rng(seed + OFFSET_SEED_SHIFT), attach_sd)
+    return Knee(params=p, attach_offsets=offsets, **kw), p

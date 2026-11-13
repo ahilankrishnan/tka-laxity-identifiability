@@ -1,8 +1,23 @@
 {
  "path_knees": 80,
  "path_outputs": 2560,
- "path_changed": 2,
- "fd_outlier_knees": 27,
- "fd_outlier_max_change": 0.014804728829773406,
- "step_max_change": 0.014992582681689237
+ "path_changed": 0,
+ "path_max_change": 4.17276503839048e-06,
+ "path_converged_both": 79,
+ "path_flag_disagree": 0,
+ "path_fitted_predictions": 150,
+ "path_fitted_outputs": 4050,
+ "path_fitted_changed": 0,
+ "path_fitted_max_change": 4.325102377578105e-06,
+ "path_fitted_converged_both": 150,
+ "path_fitted_flag_disagree": 0,
+ "fisher_valid": 491,
+ "fisher_rejected": [
+  457
+ ],
+ "fisher_outside": 149,
+ "fd_outlier_knees": 0,
+ "fd_outlier_max_change": 0.0,
+ "step_knees": 50,
+ "step_max_change": 0.010194257767868975
 }
