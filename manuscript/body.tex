@@ -9,7 +9,7 @@ In addition, we used bounded nonlinear least-squares calibration to infer the pa
 The simulations showed that joint gaps alone primarily constrained the medial collateral ligament reference strain and provided little information about stiffness.
 Adding laxity measurements in all three planes across flexion improved parameter identifiability, although stiffness and reference strain remained coupled.
 Calibration to the full examination of gaps and laxities improved predictions of held-out passive laxity, but parameter errors remained comparable to those of the prior center, the midpoint of the assumed parameter ranges.
-Using the true ligament attachment sites reduced the normalized parameter root-mean-square error from 0.31 to 0.17.
+Using the true ligament attachment sites reduced the normalized parameter root-mean-square error from 0.30 to 0.16.
 Our findings suggest that accurate laxity predictions do not necessarily imply accurate ligament properties, and they highlight the importance of both measurement selection and attachment-site accuracy in patient-specific knee model calibration for intraoperative decision making.
 \end{abstract}
 
@@ -58,8 +58,8 @@ Our primary contribution is therefore a formal identifiability assessment of int
 (A)~Anterior, medial, posterior, and lateral views of the right-knee model in the reference pose at full extension.
 Toroidal condyles of the femoral component articulate with a dished tibial insert, and nine nonlinear bundles represent the medial collateral ligament (MCL), lateral collateral ligament (LCL), posterior cruciate ligament (PCL), and capsule (CAP).
 In the anterior view, the femoral origin $O_\mathrm{F}$ lies midway between the condyles on the flexion axis, and the tibial origin $O_\mathrm{T}$ lies midway between the lowest points of the insert dishes.
-Filled and open circles mark the nominal femoral and tibial attachments of \autoref{tab:bundles}. Bundle prefixes denote anterior (a), intermediate (i), anterolateral (al), posteromedial (pm), and posterolateral (pl). The triad of each view gives the femoral-frame axes, with a dot for an axis toward the viewer and a cross for one away from the viewer. Bones are not modeled.
-The four loading conditions for laxity assessment were (1) joint distraction for the medial and lateral gaps and (2) AP, (3) VV, and (4) IE laxity tests, each at \SIlist{0;30;60;90}{\degree} flexion.
+Filled and open circles mark the nominal femoral and tibial attachments of \autoref{tab:bundles}. Bundle prefixes denote anterior (a), intermediate (i), posterior (p), anterolateral (al), posteromedial (pm), and posterolateral (pl). The triad of each view gives the femoral-frame axes, with a dot for an axis toward the viewer and a cross for one away from the viewer. Bones are not modeled.
+The virtual laxity examination comprised (1) joint distraction for the medial and lateral gaps and (2) AP, (3) VV, and (4) IE laxity tests, each at \SIlist{0;30;60;90}{\degree} flexion.
 (B)~The current study generated synthetic knees, simulated their virtual laxity examinations with measurement noise, and assessed parameter inference by Fisher analysis and least-squares calibration.
 In the intended surgical use, an instrumented examination would update the model, which would then predict the effect of an adjustment.}
 \label{fig:overview}
@@ -126,6 +126,8 @@ Static equilibrium required the generalized forces of contact, ligaments, and ex
 Each component of $\ten{Q}$ is the generalized force conjugate to one coordinate of $\ten{q}$.
 Using the kinematics in \autoref{eq:pose}, we projected the resultant force onto the axes of $\ten{u}$ and its moment about the tibial origin onto the rotation axes of $\beta$ and $\gamma$, while the prescribed flexion supplied the reaction about the flexion axis.
 We solved \autoref{eq:equilibrium} for the five coordinates $\ten{q}$ with a Newton method.
+To follow one equilibrium branch, each load and each change of flexion angle was applied by adaptive continuation, which halved an increment whenever the solution failed to converge or jumped.
+An equilibrium was accepted only if this continuation reached the full load and the end state was statically stable.
 The solver settings and a check of path dependence are reported in the Supplementary Material.
 We implemented the model and all analyses in Python with NumPy and SciPy.
 
@@ -134,6 +136,7 @@ We implemented the model and all analyses in Python with NumPy and SciPy.
 To mimic an intraoperative assessment, the virtual laxity examination followed the AP, VV, and IE laxity tests of cadaveric studies~\autocite{markolf1976stiffness,harris2016combined}.
 Each laxity test applied a \SI{50}{\newton} axial compression that seated the femur in the insert, with external loads expressed in the tibial frame.
 At flexion angles of \SIlist{0;30;60;90}{\degree}, we applied anterior and posterior forces of \SI{100}{\newton} at \SI{5}{\milli\meter} below the joint line, varus and valgus moments of \SI{10}{\newton\meter}, and internal and external moments of \SI{3}{\newton\meter}.
+The compression-only equilibrium was found at full extension and carried to each flexion angle by continuation.
 Laxity was the change of the corresponding coordinate from the compression-only equilibrium at the same flexion angle.
 To mimic gap balancing, the gap test replaced the compression by a distraction force of \SI{100}{\newton} at the center of each compartment.
 The AP, medial--lateral, and IE coordinates were held at their compression-only values, while proximal translation and varus rotation were free.
@@ -146,8 +149,12 @@ To represent variation between patients, we sampled the stiffnesses log-uniforml
 These ranges were model assumptions rather than measured patient distributions.
 To represent uncertainty in locating the attachment sites~\autocite{rachmat2014generating}, we perturbed each attachment coordinate by Gaussian noise with an assumed standard deviation of \SI{1.5}{\milli\meter}.
 To characterize the forward model, we simulated \num{10000} knees (Supplementary \autoref{fig:forward}).
-Independently, we simulated 500 test knees, and the examinations of 499 of them converged.
-We used all converged test knees for the Fisher analysis and the first 50 converged knees for least-squares calibration.
+Independently, we simulated 500 test knees.
+An examination counted as converged only if every equilibrium in it met the acceptance rule above, and knees whose examination did not converge were excluded.
+The examinations of 492 test knees and \num{9936} characterization knees converged.
+The excluded knees were mostly knees with slack ligaments: in \SI{86}{\percent} of the excluded characterization knees, the MCL or PCL reference strain lay in the lowest quarter of its prior range, compared with \SI{43}{\percent} of the converged knees.
+With little ligament restraint, the continuation could not follow a single stable equilibrium branch under some test loads in these knees.
+We used the converged test knees for the Fisher analysis and the first 50 converged knees for least-squares calibration.
 To represent measurement error, we added Gaussian noise with assumed standard deviations of \SI{0.5}{\milli\meter} for translations and gaps and \SI{0.5}{\degree} for rotations.
 Each test knee received one random draw of this noise, and the same noisy measurements were used in all least-squares fits.
 
@@ -171,7 +178,9 @@ Reference strain $\varepsilon_\mathrm{r}$ [\si{\percent}] & 0 to 8 & 0 to 8 & $-
 To determine which measurements constrain which parameters, we compared nine measurement sets, from gaps at \SIlist{0;90}{\degree} only to the full examination.
 For each test knee, we computed the sensitivity matrix $\ten{J} = \partial \ten{y}/\partial \hat{\ten{\vartheta}}$ of the measurements $\ten{y}$ with respect to the normalized parameters $\hat{\ten{\vartheta}}$.
 To compare parameters with different units, the normalization mapped the prior range of each parameter to the unit interval, logarithmically for stiffness and linearly for reference strain.
-We computed $\ten{J}$ by central differences with a step of $0.02$, kept inside the prior.
+We computed $\ten{J}$ by central differences with a step of $0.02$.
+Perturbed points were not clipped to the prior range, because the model remains defined just outside it; in 149 knees, at least one perturbed point lay outside the range.
+A sensitivity matrix was used only if every perturbed examination converged, which excluded one knee and left 491 knees.
 The uniform prior on the unit interval has variance $1/12$, so a Gaussian with the same variance has precision 12.
 With this Gaussian approximation of the prior, the linearized posterior covariance is
 \begin{equation}
@@ -205,6 +214,7 @@ The reference values used the true parameters and true attachment sites of each 
 Predictions used the same attachment sites as the corresponding fit.
 Parameter error was the root-mean-square error (RMSE) of the normalized parameters, pooled over knees and, for the overall value, over all eight parameters.
 Held-out AP, VV, and IE errors were RMSEs pooled with equal weight over knees and nine outputs each.
+Only converged predictions entered these errors, and errors were compared on the knees for which every estimator's prediction converged.
 These outputs were the two load directions at three flexion angles and the corresponding coordinate under each of the three combined loads.
 To separate the effect of calibration from that of attachment mismatch, we also predicted with the prior center and with the true parameters at the nominal attachment sites.
 

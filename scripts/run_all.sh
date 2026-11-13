@@ -1,5 +1,5 @@
 #!/bin/bash
-# Full pipeline, about 10 h on 4 cores. Usage: bash scripts/run_all.sh
+# Full pipeline, about one day on 4 cores (the least-squares fits take most of it). Usage: bash scripts/run_all.sh
 set -e
 cd "$(dirname "$0")/.."
 mkdir -p results

@@ -68,12 +68,18 @@ bash scripts/run_all.sh     # Linux or macOS
 scripts\run_all.bat         # Windows (cmd, from the repository root)
 ```
 
+The full pipeline takes about one day on 4 cores; the least-squares fits (`04_lsq.py`) take most of it.
+
 To check that two computers give the same results, run the pipeline on both and compare the result
 directories (timings are ignored):
 
 ```
 python scripts/10_compare_runs.py results_computer_A results_computer_B
 ```
+
+The committed `results/` come from a Linux run, and `results/compare/windows_vs_linux.txt` is the comparison
+with a Windows run. Everything agrees at the reported precision except the gaps-only fits, whose endpoints are
+not unique (see the Supplementary Material).
 
 For a quick check in minutes rather than hours, run `python scripts/11_platform_check.py` on both computers
 and compare the two `results/platform_check.npz` files the same way.
