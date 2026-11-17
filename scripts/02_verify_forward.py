@@ -1,7 +1,7 @@
 """Verification and baseline behavior of the forward simulator (nominal knee).
 
 1. Contact-grid convergence of all 32 examination outputs and the time of one examination.
-2. Neutral pose, ligament forces, and equilibrium residuals from 0 to 120 deg flexion (Figure 2A,B).
+2. Neutral pose, ligament forces, and equilibrium residuals from 0 to 120 deg flexion (Figure S1A,B).
 """
 import sys
 import json
@@ -27,7 +27,11 @@ def main() -> None:
         t0 = time.time()
         Y[h], ok = examine(Knee(insert=dict(INSERT, h=h)))
         res[f"grid_{h}"] = dict(ok=bool(ok), time_s=time.time() - t0)
-    res["grid_conv"] = {str(h): float(np.abs(Y[h] - Y[0.5]).max()) for h in Y if h != 0.5}
+    if not res["grid_0.5"]["ok"] or not res["grid_1.5"]["ok"]:
+        raise RuntimeError("Nominal examination failed at the reference or production grid; inspect the solver before fitting.")
+    # only grids whose examination converged have a meaningful error (a failed solve returns an arbitrary pose)
+    res["grid_conv"] = {str(h): (float(np.abs(Y[h] - Y[0.5]).max()) if res[f"grid_{h}"]["ok"] else None)
+                        for h in Y if h != 0.5}
     print("grid convergence (max abs error vs h = 0.5 mm):", res["grid_conv"])
     print("time of one examination at h = 1.5 mm: %.2f s" % res["grid_1.5"]["time_s"])
 
@@ -35,10 +39,13 @@ def main() -> None:
     k = Knee()
     flex = np.arange(0, 121, 5.0)
     Q, F, resid = [], [], []
-    q = None
+    q, thp = None, None
     for f in flex:
         th = np.radians(f)
-        q, _ = neutral(k, th, q)
+        q, ok = neutral(k, th, q, thp)
+        if not ok:
+            raise RuntimeError(f"Nominal neutral equilibrium failed at {f:g} degrees; no forward sweep was saved.")
+        thp = th
         resid.append(np.abs(k.generalized_forces(q, th, [_COMP])).max())
         R, t, _ = k.pose(q, th)
         _, _, fb, _ = k.ligament_forces(R, t)

@@ -1,4 +1,4 @@
-# versions used for all results in the manuscript (Python 3.13.18)
+# versions used for the reported results (Windows 11, Python 3.14.3)
 numpy==2.5.3
 scipy==1.18.1
 matplotlib==3.11.2
