@@ -1,0 +1,29 @@
+date 2026-11-15T13:38:16
+3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]
+Windows-11-10.0.26300-SP0
+numpy 2.5.3 scipy 1.18.1 matplotlib 3.11.2
+source digest 239373f70963c0169b9ee9ec250f4a8d143bcf31a468f32f625aa9107b09ce6b
+  e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  knee/__init__.py
+  c74f77520448acf9414ebca07a5b0f05aa527e91a3623a38af21bcbeb93a4c9b  knee/analysis.py
+  546cefdd9e4474b9e213cecf9964dfbad89abc3364822a259ef7c5bf43554b4b  knee/geometry3d.py
+  c1212b19bf37fa61731c0d54abc627cdf6dd6a0ac98fc205d44230db924a7dd9  knee/model.py
+  9292293b193de3bef6c909c4ffabc0fde2f6aa8cac6c48257c9c2fe738a1f4e3  knee/plotstyle.py
+  7f6f86799bafb9786ec02b1a53e08524ff2ac1540694cdd86ab992c2e0d99660  knee/protocols.py
+  2cd19dc95169912820849e001b5af228e52f35eed61a6877a99ab1811b077ab0  knee/sampling.py
+  ee399d6ac56f4c9efdf6c4b4801e52b201caf40102da423f32e6738fa3ff48eb  knee/subsets.py
+  4ab25219ba6ddb2f3f9bd17f6fc62d7205c417cd5659effab08472a4d79595b0  manuscript/tab_bundles_template.txt
+  7ef2f7a4b1879b8fa63f98993101696c894b1836b6aea73220149a1d9b27245b  requirements.txt
+  e1212733340598f5e2b666a2e7c2345d4fe650e4718743b5999785f233ec69ab  scripts/00_record_environment.py
+  9ba39c95dab54773a8eab11e2d1942fa5cafe92f9948802b76134c5840a48f30  scripts/01_generate_data.py
+  e43fafea3110c84b12c3663047f945a0325a18c3749707c8db7344dabbfea7cf  scripts/02_verify_forward.py
+  8dbf234f51454ce16c9e0193517ce426e551f7dd2b2577d8e79f12e71eec3548  scripts/03_identifiability.py
+  4814a8dff1e7a224de65bcbcb6d582ae47b0cce8fe72f8507e05433dd2d1902f  scripts/04_lsq.py
+  444a85766a87972454c06f20f264a97e4797114f993e81f68bee5ae0b77829f1  scripts/05_lsq_summary.py
+  cc8f1841fe8d79ff7382e8ede3d1f6e0fca3a3cc54524a5ae7be958cadd488d8  scripts/06_checks.py
+  615dfecdb62b328ebd23d4606471aa0875ead9f9e383ccf123e0207c98be219a  scripts/07_robustness.py
+  2c648d8153ca447d1a987a9a684efbbc5bf14769a2cc4598639a0ee0f5a86215  scripts/08_tables.py
+  0cf6ad3cd9b0211be4ad959b10298060d73391208a117edfecf27837e205af25  scripts/09_figures.py
+  d5d846b0f58d217e35c910bcb017030f93fddfdbb681f0e22b9fe645f7424129  scripts/10_compare_runs.py
+  26b10e4a1d1204993ae25c87fa789b1283badf63d0e76c74246934b4bd24c065  scripts/11_platform_check.py
+  9bd0826fa7b4d8e9ab56729f313cd5da42c180f936c96bf199d66cbb850384d7  scripts/run_all.bat
+  0d93fed930ba87985343ca0cbcf3738f9c40e4568079b60cf90d4485f231128a  scripts/run_all.sh
