@@ -61,7 +61,7 @@ Filled and open circles mark the nominal femoral and distal attachment sites of 
 Bundle prefixes denote anterior (a), intermediate (i), posterior (p), anterolateral (al), posteromedial (pm), and posterolateral (pl).
 The triad of each view gives the femoral-frame axes, with a dot for an axis toward the viewer and a cross for one away from the viewer.
 The virtual laxity examination comprised (1) joint distraction for the medial and lateral gaps and (2) AP, (3) VV, and (4) IE laxity tests, each at \SIlist{0;30;60;90}{\degree} flexion.
-(B)~The current study generated synthetic knees, simulated their virtual laxity examinations with measurement noise, and assessed parameter inference by Fisher analysis and least-squares calibration.
+(B)~The current study generated a virtual knee population, simulated the virtual laxity examination of each knee with measurement noise, and assessed parameter inference by Fisher analysis and least-squares calibration.
 In the intended surgical use, an instrumented examination would update the model, which would then predict the effect of an adjustment.}
 \label{fig:overview}
 \end{figure}
@@ -207,7 +207,7 @@ Each start had a budget of 500 optimizer evaluations, the residual evaluations c
 A failed or nonfinite equilibrium evaluation, including one during finite differencing, rejected that start.
 We re-evaluated each endpoint, and among the endpoints whose equilibrium evaluation succeeded, we retained the start with the lowest fit error for each knee, whether or not the optimizer had reached a convergence criterion.
 We called two starts of a knee distinct when their fitted parameters differed by more than 0.2 in at least one normalized parameter and both reached a fit error within one unit of the lowest fit error of that knee.
-To compare the full examination with a gap-based examination, we repeated the fits using only the four gaps at \SIlist{0;90}{\degree} (gaps-only fits), with the same knees, noise, bounds, and starts.
+To compare the full examination with an examination limited to gaps, we repeated the fits using only the four gaps at \SIlist{0;90}{\degree} (gaps-only fits), with the same knees, noise, bounds, and starts.
 To isolate the effect of attachment mismatch, we also repeated the full-examination fits with the true attachment sites of each knee.
 
 \subsection{Predictions under held-out load cases}
