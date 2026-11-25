@@ -109,17 +109,20 @@ However, parameters that compensate for attachment mismatch may reproduce the cu
 Calibration required tens of minutes of cumulative computation per knee.
 Future work could evaluate surrogate models to accelerate calibration toward intraoperative use.
 
-Among the limitations, our model is a rigid-body simplification with straight, tension-only ligament bundles, no wrapping, and a simplified posterolateral restraint, which may explain its asymmetric rotational laxity.
+Among the limitations, our model is a rigid-body simplification with straight, tension-only ligament bundles, no wrapping, and a simplified posterolateral restraint.
 Adding model detail would not by itself resolve the identifiability problem, because it may introduce further unknowns~\autocite{transtrum2015perspective}.
 Sharing parameters within each group suppressed bundle-specific differences; for example, PCL bundles have different flexion-dependent recruitment patterns~\autocite{amis2006anatomy}.
 The per-bundle stiffness ranges were not validated against tissue tests, and the measurement comparisons remain conditional on this parameterization.
 We fixed implant geometry and component alignment, although alignment can affect knee mechanics~\autocite{smith2016influence}.
 
-All data were synthetic, and the model was not compared with measured laxity of replaced knees.
+All data were synthetic.
+The IE laxity of the model differed substantially from reported native-knee values~\autocite{roth2015native} and showed marked internal--external asymmetry, particularly in flexion.
+These comparisons provide context rather than validation, because joint anatomy, implant geometry, loading, and measurement definitions differed.
+The simplified ligament geometry and posterolateral restraint may contribute to these differences.
 The preload, the independent measurement-noise levels, and the attachment-perturbation distribution were assumed, while applied loads and flexion angles were treated as exact.
 The noise model omitted correlations arising from shared reference poses or registration, although doubling all noise standard deviations preserved the ranking of measurement sets (Supplementary Material).
 Calibration was evaluated on 50 test knees with one noise realization per knee, and our results concern passive model calibration rather than postoperative function.
-A necessary next step is testing against cadaveric laxity measurements of the kind used for specimen-specific calibration~\autocite{harris2016combined,ewing2016estimating}, ideally combined with tensile tests of the same ligaments~\autocite{butler1986comparison}.
+Experimental validation against laxity measurements of replaced knees therefore remains necessary, for example with cadaveric measurements of the kind used for specimen-specific calibration~\autocite{harris2016combined,ewing2016estimating}, ideally combined with tensile tests of the same ligaments~\autocite{butler1986comparison}.
 
 %% ------------------------------------------------------------------------------
 \section{Conclusion}
