@@ -6,7 +6,7 @@
 
 \subsection*{Forward-model characterization}
 
-With increasing flexion under compression, the tibia of the nominal knee translated anteriorly relative to the femur, from \SIrange{2.0}{9.0}{\milli\meter} between \SI{0}{\degree} and \SI{90}{\degree}, and rotated internally from \SIrange{3}{16}{\degree} (\autoref{fig:forward}A).
+With increasing flexion in the compression-only pose, the tibia of the nominal knee translated anteriorly relative to the femur, from \SIrange{2.0}{9.0}{\milli\meter} between \SI{0}{\degree} and \SI{90}{\degree}, and rotated internally from \SIrange{3}{16}{\degree} (\autoref{fig:forward}A).
 The MCL carried most of the ligament force in extension, the PCL took over between \SI{65}{\degree} and \SI{70}{\degree} of flexion, and the LCL slackened within the first \SI{20}{\degree} (\autoref{fig:forward}B).
 Across the \num{9932} converged characterization knees (the examinations of 68 of the \num{10000} knees did not converge and were excluded), the median lateral gap exceeded the median medial gap at every flexion angle, and varus laxity exceeded valgus laxity.
 This asymmetry is consistent with the three-bundle medial restraint and the more conforming medial dish.
@@ -19,7 +19,7 @@ This asymmetry may reflect the simplified ligament geometry and posterolateral r
 \centering
 \includegraphics{figS2_forward.pdf}
 \caption{\textbf{The virtual knee exhibits flexion-dependent kinematics, ligament recruitment, and laxity.}
-(A)~With increasing flexion up to \SI{100}{\degree} under \SI{50}{\newton} compression, the tibia of the nominal knee translated anteriorly ($u_\mathrm{AP}$) and rotated internally ($\gamma$), with little varus rotation ($\beta$), and these trends reversed beyond \SI{100}{\degree}.
+(A)~In the compression-only (neutral) pose under \SI{50}{\newton}, the tibia of the nominal knee translated anteriorly ($u_\mathrm{AP}$) and rotated internally ($\gamma$) with increasing flexion up to \SI{100}{\degree}, with little varus rotation ($\beta$), and these trends reversed beyond \SI{100}{\degree}.
 Panels A and B extend to \SI{120}{\degree}, whereas panels C to F show the examination angles from \SIrange{0}{90}{\degree}.
 (B)~The MCL carried most of the neutral ligament force $F$ in extension, whereas the PCL carried most of it in deep flexion.
 (C)~The lateral gap $g$ under \SI{100}{\newton} distraction per compartment exceeded the medial gap.
@@ -56,7 +56,7 @@ Each Newton step was limited to \SI{2}{\milli\meter} for AP and medial--lateral 
 Iterations stopped when the largest free-coordinate residual fell below \SI{1e-4}{\newton} or after 60 iterations, and a solution was accepted if this residual was below \SI{0.01}{\newton}, with moments divided by a length scale of \SI{25}{\milli\meter}.
 The initial seating equilibrium was found under \SI{10}{\newton} compression, and the compression was then increased to \SI{50}{\newton}.
 Subsequent calculations interpolated between the starting and the requested loads or flexion angles, with the starting equilibrium first re-evaluated.
-The gap test transitioned from the compression-only state to \SI{100}{\newton} distraction per compartment, with the three constrained coordinates held at their seated values.
+The gap test transitioned from the compression-only equilibrium to \SI{100}{\newton} distraction per compartment, with the three constrained coordinates held at their compression-only values.
 The load-factor increment started at 0.2 and was accepted when the residual criterion was met and no free coordinate changed by more than \SI{1}{\milli\meter} or \SI{0.03}{\radian}.
 Otherwise, the increment was halved, down to $1/4096$, and after an accepted increment, the next one could double, up to 0.2.
 A failed starting equilibrium or a failure at the minimum increment rejected the solve.
