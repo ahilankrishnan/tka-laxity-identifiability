@@ -57,7 +57,7 @@ Our contribution is a comparison of measurement-dependent local parameter precis
 (A)~Anterior, medial, posterior, and lateral views of the right-knee model in the reference pose at full extension.
 Toroidal condyles of the femoral component articulate with a dished tibial insert, and nine nonlinear bundles represent the medial collateral ligament (MCL), lateral collateral ligament (LCL), posterior cruciate ligament (PCL), and capsule (CAP).
 In the anterior view, the femoral origin $O_\mathrm{F}$ lies midway between the condyles on the flexion axis, and the tibial origin $O_\mathrm{T}$ lies midway between the lowest points of the insert dishes.
-Filled and open circles mark the nominal femoral and distal attachment sites of \autoref{tab:bundles}.
+Filled and open circles mark the nominal femoral and distal attachment sites.
 Bundle prefixes denote anterior (a), intermediate (i), posterior (p), anterolateral (al), posteromedial (pm), and posterolateral (pl).
 The triad of each view gives the femoral-frame axes, with a dot for an axis toward the viewer and a cross for one away from the viewer.
 The virtual laxity examination comprised (1) joint distraction for the medial and lateral gaps and (2) AP, (3) VV, and (4) IE laxity tests, each at \SIlist{0;30;60;90}{\degree} flexion.
@@ -115,7 +115,7 @@ The reference pose is a fixed geometric pose at full extension, with the tibial 
 The reference strain $\varepsilon_\mathrm{r}$ is the bundle strain in this pose, so that $k$ and $\varepsilon_\mathrm{r}$ together determine the bundle force in this pose.
 We selected idealized attachment sites informed by anatomical descriptions~\autocite{laprade2007anatomy,laprade2003posterolateral,claes2013anatomy,amis2006anatomy}, and the implemented coordinates are listed in \autoref{tab:bundles}.
 Because $l_\mathrm{r}$ was computed from the attachment sites of each knee, perturbed attachment sites (\autoref{sec:population}) changed $l_\mathrm{r}$ and $l_0$, and $\varepsilon_\mathrm{r}$ always denoted the reference-pose strain of that knee.
-The bundles formed four groups, and the bundles of each group shared one stiffness and one reference strain (\autoref{tab:bundles}).
+The bundles formed four groups, the medial collateral ligament (MCL), lateral collateral ligament (LCL), posterior cruciate ligament (PCL), and capsule (CAP), and the bundles of each group shared one stiffness and one reference strain (\autoref{tab:bundles}).
 This yields eight unknown parameters, $\ten{\vartheta} = [k_\mathrm{MCL}; \varepsilon_{\mathrm{r},\mathrm{MCL}}; k_\mathrm{LCL}; \varepsilon_{\mathrm{r},\mathrm{LCL}}; k_\mathrm{PCL}; \varepsilon_{\mathrm{r},\mathrm{PCL}}; k_\mathrm{CAP}; \varepsilon_{\mathrm{r},\mathrm{CAP}}]$.
 
 \input{tab_bundles}
@@ -129,7 +129,7 @@ Each component of $\ten{Q}$ is the generalized force conjugate to one coordinate
 Using the kinematics in \autoref{eq:pose}, we projected the resultant force onto the axes of $\ten{u}$ and its moment about the tibial origin onto the rotation axes of $\beta$ and $\gamma$, while the prescribed flexion supplied the reaction about the flexion axis.
 We solved \autoref{eq:equilibrium} for the five coordinates $\ten{q}$ with a Newton method and used the same incremental procedure for seating, flexion, laxity testing, and distraction.
 An increment was accepted only when the equilibrium residuals converged and the changes in the free coordinates remained within prescribed limits; otherwise, the increment was reduced.
-The solver settings and a loading-path refinement check are reported in the Supplementary Material.
+The solver settings and a loading-path refinement check are reported in the supplementary material.
 We implemented the model and all analyses in Python with NumPy and SciPy.
 
 \subsection{Virtual laxity examination}
@@ -170,7 +170,7 @@ Stiffness was sampled log-uniformly and reference strain uniformly.}
  & MCL & LCL & PCL & Capsule \\
 \midrule
 Bundles & 3 & 1 & 2 & 3\\
-Stiffness $k$ [\si{\kilo\newton}] & 1.5--5.5 & 1.0--4.0 & 2.5--9.0 & 0.5--3.0\\
+Stiffness $k$ [\si{\kilo\newton}] & 1.5 to 5.5 & 1.0 to 4.0 & 2.5 to 9.0 & 0.5 to 3.0\\
 Reference strain $\varepsilon_\mathrm{r}$ [\si{\percent}] & 0 to 8 & 0 to 8 & $-4$ to 4 & $-4$ to 4\\
 \bottomrule
 \end{tabular}

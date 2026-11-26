@@ -16,10 +16,11 @@ manuscript/*.log
 manuscript/*.out
 manuscript/*.run.xml
 manuscript/*.synctex.gz
-
-# results/data/ is committed so that the exact observations can be checked
 manuscript/*.bbl-SAVE-ERROR
+
+# compiled manuscript (results/, including results/data/, is committed so that the exact observations can be checked)
 manuscript/main.pdf
+manuscript/supplementary_material.pdf
 
 # local reproduction copy (not part of the shared repository)
 reproduction_*/

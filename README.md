@@ -30,15 +30,15 @@ Matplotlib 3.11.2) by the code in this repository (source digest `239373f7...` i
 | Script | Output | Used in |
 |---|---|---|
 | `01_generate_data.py` | 500 test knees with held-out outputs and 10000 characterization knees (`results/data/`) | all later steps |
-| `02_verify_forward.py` | contact-grid convergence, timing, neutral kinematics and ligament forces (`results/forward/`) | Fig. S2, Supplementary Material |
+| `02_verify_forward.py` | contact-grid convergence, timing, neutral kinematics and ligament forces (`results/forward/`) | Fig. S1, supplementary material |
 | `03_identifiability.py 0.02` | Fisher analysis of each measurement set (`results/identifiability/summary*`) | Fig. 2 |
 | `03_identifiability.py 0.001 50` | the same with a smaller finite-difference step on 50 knees | step check |
 | `04_lsq.py <stage> <cores>` | least squares for stages `nominal`, `known`, `gaps`, then `heldout` (`results/lsq/`) | Fig. 3 |
 | `05_lsq_summary.py` | fit error and held-out numbers quoted in the text (`results/lsq/summary.json`) | Results |
-| `06_checks.py` | loading-path refinement (test knees and all fitted parameter sets), sensitivity outliers and step check (`results/checks.json`) | Supplementary Material |
-| `07_robustness.py` | Fisher analysis with doubled noise and per-knee spread of held-out errors (`results/robustness.json`) | Supplementary Material, Table S2 |
+| `06_checks.py` | loading-path refinement (test knees and all fitted parameter sets), sensitivity outliers and step check (`results/checks.json`) | supplementary material |
+| `07_robustness.py` | Fisher analysis with doubled noise and per-knee spread of held-out errors (`results/robustness.json`) | supplementary material, Table S2 |
 | `08_tables.py` | attachment-site table (`manuscript/tab_bundles.tex`) | Table 2 |
-| `09_figures.py [1 2 3 S2]` | `manuscript/figures/*.pdf` | Figs. 1 to 3, Fig. S2 |
+| `09_figures.py [1 2 3 S2]` | `manuscript/figures/*.pdf` | Figs. 1 to 3, Fig. S1 (file `figS2_forward.pdf`) |
 | `00_record_environment.py` | date, Python and package versions, and SHA-256 digests of the listed source/input files: `knee/*.py`, `scripts/*.py`, the runners, `manuscript/tab_bundles_template.txt`, `requirements.txt` (`results/environment.txt`) | provenance of a run |
 | `10_compare_runs.py A B` | compares the `.npz`, `.npy`, and `.json` files of two result directories (or two such files) key by key and value by value, excluding timing fields; fails on files or keys present on one side only, one-sided NaN or infinity, and empty inputs. It does not read `environment.txt` | reproducibility check |
 | `11_platform_check.py` | examination and held-out outputs of 56 test knees in a few minutes (`results/platform_check.npz`) | quick cross-computer check |
@@ -95,7 +95,7 @@ python scripts/10_compare_runs.py <path-to-this-repository>/results results
 For a quick check in minutes rather than hours, run `python scripts/11_platform_check.py` on both computers
 and compare the two files: `python scripts/10_compare_runs.py A/platform_check.npz B/platform_check.npz`.
 
-`results/data/` is created by `01_generate_data.py`. Fig. S2 reads it, so run the full pipeline
+`results/data/` is created by `01_generate_data.py`. Fig. S1 reads it, so run the full pipeline
 (or at least `01_generate_data.py`) before regenerating figures from a fresh clone.
 
 To build the manuscript, run `latexmk -pdf main.tex` in `manuscript/` (biber is required).
