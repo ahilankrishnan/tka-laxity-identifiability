@@ -90,7 +90,7 @@ Each grid point $i$ of the insert, with area $A$, carried the normal contact for
 \label{eq:contact}
 \end{equation}
 Here, $\delta_i$ is the signed separation from the toroidal condyle, $\ten{n}_i$ is the outward normal of the condyle, $\langle x\rangle_+$ is the positive part, smoothed over \SI{0.01}{\milli\meter}, and $k_\mathrm{c}$ is the foundation modulus.
-We used a \SI{1.5}{\milli\meter} contact grid, because refining it to \SI{0.5}{\milli\meter} changed each of the 32 measurements of the nominal knee by less than \SI{0.041}{\milli\meter} or \SI{0.041}{\degree}, less than one-tenth of the assumed noise standard deviations.
+We used a \SI{1.5}{\milli\meter} contact grid, because refining it to \SI{0.5}{\milli\meter} changed every measurement of the nominal knee by less than one-tenth of the assumed noise standard deviations.
 
 \input{tab_implant}
 
@@ -180,7 +180,7 @@ To determine which measurements constrain which parameters, we compared nine mea
 For each test knee, we computed the sensitivity matrix $\ten{J} = \partial \ten{y}/\partial \hat{\ten{\vartheta}}$ of the measurements $\ten{y}$ with respect to the normalized parameters $\hat{\ten{\vartheta}}$.
 To compare parameters with different units, the normalization mapped the prior range of each parameter to the unit interval, logarithmically for stiffness and linearly for reference strain.
 We computed $\ten{J}$ by central differences with a step of $0.02$.
-Perturbed points were not clipped to the prior range, because the model remains defined just outside it; in 149 knees, at least one perturbed point lay outside the range.
+Perturbed points were not clipped to the prior range, because the model remains defined just outside it.
 A sensitivity matrix was used only if every perturbed examination converged, which excluded one knee and left 491 knees.
 The uniform prior on the unit interval has variance $1/12$, so a Gaussian with the same variance has precision 12.
 With this Gaussian approximation of the prior, the linearized posterior covariance is
