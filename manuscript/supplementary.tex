@@ -8,7 +8,7 @@
 
 With increasing flexion in the compression-only pose, the tibia of the nominal knee translated anteriorly relative to the femur, from \SIrange{2.0}{9.0}{\milli\meter} between \SI{0}{\degree} and \SI{90}{\degree}, and rotated internally from \SIrange{3}{16}{\degree} (\autoref{fig:forward}A).
 The MCL carried most of the ligament force in extension, the PCL took over between \SI{65}{\degree} and \SI{70}{\degree} of flexion, and the LCL slackened within the first \SI{20}{\degree} (\autoref{fig:forward}B).
-Across the \num{9932} converged characterization knees (the examinations of 68 of the \num{10000} knees did not converge and were excluded), the median lateral gap exceeded the median medial gap at every flexion angle, and varus laxity exceeded valgus laxity.
+Across the \num{9932} converged characterization knees, the median lateral gap exceeded the median medial gap at every flexion angle, and varus laxity exceeded valgus laxity.
 This asymmetry is consistent with the three-bundle medial restraint and the more conforming medial dish.
 We defined the total laxity of each knee as the difference between its positive- and negative-direction outputs.
 Across the four flexion angles, the median total laxity ranged from \SIrange{8.7}{10.2}{\milli\meter} for AP, \SIrange{3.9}{9.2}{\degree} for VV, and \SIrange{22.2}{34.1}{\degree} for IE.
@@ -64,13 +64,13 @@ A failed starting equilibrium or a failure at the minimum increment rejected the
 \subsection*{Sensitivity to loading-path refinement}
 
 For 80 test knees, we halved the coordinate-change limits and the initial, maximum, and minimum load-factor increments of the solver, which also lowered the initial seating compression from \SI{10}{\newton} to \SI{5}{\newton}.
-For the 79 knees whose examinations converged with both settings, no measurement changed by more than \SI{5e-6}{\milli\meter} or \SI{5e-6}{\degree}, and no knee converged with one setting only.
-The same check on the 150 held-out predictions of the retained fits changed no output by more than \SI{5e-6}{\milli\meter} or \SI{5e-6}{\degree}.
+No knee converged with only one setting, and for the 79 knees that converged with both, every measurement changed by less than \SI{1e-5}{\milli\meter} or \SI{1e-5}{\degree}, far below the assumed measurement noise.
+The held-out predictions of the 150 retained fits changed by less than the same bound.
 No valid sensitivity matrix exceeded the screening threshold of 300 for the absolute noise-normalized sensitivity.
 
 \subsection*{Robustness of the Fisher analysis}
 
-A central-difference step of 0.001 instead of 0.02 on the first 50 knees changed the median identifiability indices by at most 0.0102.
+A central-difference step of 0.001 instead of 0.02 on the first 50 knees changed the median identifiability indices by no more than about 0.01.
 We also recomputed the indices from the same sensitivity matrices with all measurement-noise standard deviations doubled.
 For the full examination, the mean of the eight median indices fell from 0.61 to 0.44.
 However, the ranking of the nine measurement sets by this mean was unchanged, and for each parameter the Spearman rank correlation between the two noise levels was at least 0.98.
@@ -99,7 +99,7 @@ true parameters, nominal attachment sites & 0.87 (0.54--1.46) & 0.66 (0.43--1.01
 
 \subsection*{Stopping criteria of the least-squares fits}
 
-All 150 full-examination fits with nominal attachment sites and all 150 with true attachment sites stopped on a SciPy convergence criterion, after at most 75 and 104 optimizer evaluations, respectively.
-Of the 150 gaps-only fits, 148 stopped on a convergence criterion and two reached the budget of 500 optimizer evaluations.
+All 150 full-examination fits with nominal attachment sites and all 150 with true attachment sites stopped on a SciPy convergence criterion after at most 104 optimizer evaluations, well within the budget of 500.
+Of the 150 gaps-only fits, 148 stopped on a convergence criterion and two reached the budget.
 One of these two had the lowest fit error of its knee and was retained, because the selection rule requires a successful equilibrium evaluation of the endpoint but not optimizer convergence.
 No start was rejected for a failed or nonfinite equilibrium evaluation.
